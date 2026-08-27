@@ -1,86 +1,18 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Busca de Jurisprudência — OAB-ES</title>
-<meta name="description" content="Pesquisa de jurisprudência criminal do TJES para a advocacia capixaba.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230B3D62'/%3E%3Ctext x='16' y='23' font-size='18' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3E%C2%A7%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/estilo.css">
-</head>
-<body>
-
-<div class="faixa">
-  <div class="interno">
-    <span class="marca">OAB-ES</span>
-    <span class="sub">Ordem dos Advogados do Brasil · Seccional Espírito Santo</span>
-  </div>
-</div>
-
-<main class="interno">
-  <h1>Busca de Jurisprudência Criminal</h1>
-  <p class="chamada">
-    Acórdãos criminais do Tribunal de Justiça do Espírito Santo. Pesquise por
-    texto livre, câmara, comarca, assunto ou magistrado.
-  </p>
-
-  <div id="demo-aviso" class="caixa aviso" hidden>
-    <strong>Modo demonstração.</strong> A página está com dados fictícios porque
-    o serviço ainda não foi conectado. Os acórdãos abaixo não são decisões reais.
-  </div>
-
-  <form class="busca" id="form" autocomplete="off">
-    <div class="linha">
-      <div>
-        <label for="q">Texto livre</label>
-        <input id="q" name="q" placeholder="ex.: nulidade da busca domiciliar">
-      </div>
-    </div>
-    <div class="linha g3">
-      <div>
-        <label for="recurso">Tipo de recurso</label>
-        <select id="recurso" name="recurso" required></select>
-      </div>
-      <div>
-        <label for="camara">Câmara</label>
-        <select id="camara" name="camara"><option value="">Todas</option></select>
-      </div>
-      <div>
-        <label for="comarca">Comarca</label>
-        <select id="comarca" name="comarca"><option value="">Todas</option></select>
-      </div>
-    </div>
-    <div class="linha g2">
-      <div>
-        <label for="assunto">Assunto</label>
-        <select id="assunto" name="assunto"><option value="">Todos</option></select>
-      </div>
-      <div>
-        <label for="magistrado">Magistrado</label>
-        <select id="magistrado" name="magistrado"><option value="">Todos</option></select>
-      </div>
-    </div>
-    <div class="acoes">
-      <button type="submit" id="enviar">Pesquisar</button>
-      <button type="button" class="secundario" id="limpar">Limpar</button>
-      <span class="dica" id="dica-comarca"></span>
-    </div>
-  </form>
-
-  <div id="mensagens" aria-live="polite"></div>
-  <div id="resultados" data-estado="inicial"></div>
-  <div id="paginacao" class="paginacao" hidden>
-    <button type="button" id="anterior" class="secundario">Anterior</button>
-    <span id="pagina-atual"></span>
-    <button type="button" id="proxima" class="secundario">Próxima</button>
-  </div>
-</main>
-
-<footer class="interno">
-  Protótipo de integração · acervo do Tribunal de Justiça do Espírito Santo ·
-  as ementas são reproduzidas conforme publicadas pelo tribunal.
-</footer>
-
-<script type="module" src="assets/app.js"></script>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Google AI Studio App</title>
+    <meta name="description" content="An application built with Google AI Studio." />
+    <meta property="og:title" content="My Google AI Studio App" />
+    <meta property="og:description" content="An application built with Google AI Studio." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
+
