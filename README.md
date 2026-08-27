@@ -49,18 +49,9 @@ dependência além do que vem com o PHP (`hash_hmac`, cURL).
 ## Publicar
 
 1. Copie `index.html`, `assets/` e `bff/` para o servidor.
-2. Gere a chave e o segredo (o segredo nunca sai do servidor):
-
-   ```
-   # identificador da chave — pode ser um nome
-   echo "oabes-prod"
-   # segredo — 48 bytes aleatórios
-   openssl rand -base64 48 | tr -d '\n'
-   ```
-
-   O mesmo par vai nos dois lados: no BFF da OAB (`OABJUS_CHAVE` e
-   `OABJUS_SEGREDO`) e no JurimetriaES (`OAB_API_CHAVES`, no formato
-   `chave:segredo`, aceitando vários separados por vírgula).
+2. Receba o par **chave + segredo** do JurimetriaES, por canal fechado (cofre de
+   senhas — não por e-mail nem por ticket). O molde das variáveis está em
+   `bff/.env.example`.
 
 3. Defina as variáveis de ambiente do processo PHP — **nunca no código, nunca no
    Git**:
@@ -70,6 +61,13 @@ dependência além do que vem com o PHP (`hash_hmac`, cURL).
    | `OABJUS_URL` | `https://<projeto>.supabase.co/functions/v1/oab-api` |
    | `OABJUS_CHAVE` | o identificador da chave, fornecido pelo JurimetriaES |
    | `OABJUS_SEGREDO` | o segredo correspondente |
+
+   **O segredo não pode ir para o navegador.** A autenticação é HMAC: cada
+   chamada vai assinada sobre método, rota, corpo, timestamp e nonce, com janela
+   de 5 minutos e nonce de uso único, e a assinatura é feita aqui, no servidor.
+   Se o segredo fosse para o JavaScript da página, qualquer visitante o leria no
+   código-fonte — e aí "só funciona no site da OAB" deixaria de ser verdade,
+   porque `Origin` e `Referer` são cabeçalhos que qualquer cliente escolhe.
 
 4. Confirme que `/bff/jurisprudencia.php` é **executado**, não servido como
    texto — um `.php` servido como arquivo entrega o código, não o resultado.
