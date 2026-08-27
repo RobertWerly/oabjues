@@ -137,6 +137,15 @@ mark{background:var(--oab-grifo);color:inherit;padding:0 .15em;border-radius:2px
   max-height:34rem;overflow-y:auto;background:var(--oab-superficie-2);
   border:1px solid var(--oab-borda);border-radius:.5rem;padding:1rem;
 }
+.cabecalho-recentes{
+  border-bottom:2px solid var(--oab-borda);padding-bottom:.5rem;margin-bottom:1rem;
+}
+.cabecalho-recentes h2{
+  font-family:Montserrat,Arial,sans-serif;font-size:.95rem;font-weight:700;
+  color:var(--oab-azul);margin:0;
+}
+.cabecalho-recentes .desde{font-size:.78rem;color:var(--oab-texto-3);font-weight:600}
+
 .rodape{color:var(--oab-texto-3);font-size:.8rem;border-top:1px solid var(--oab-borda)}
 
 /* O Bootstrap declara [hidden]{display:none!important} no reboot e

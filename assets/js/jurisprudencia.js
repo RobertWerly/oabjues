@@ -13,7 +13,7 @@
 //   sem total a API não devolve contagem. O fim da lista é `tem_mais: false`,
 //             nunca um zero que se confunde com "nada encontrado".
 // ============================================================================
-import { buscar, acordao, vocabulario, RECURSOS, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
+import { buscar, acordao, vocabulario, recentes, RECURSOS, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
 
 const $ = (id) => document.getElementById(id);
@@ -213,12 +213,56 @@ function estadoVazio({ inicial }) {
       <div class="exemplos">
         ${EXEMPLOS.map((e) => `<button type="button" data-exemplo="${esc(e)}">${esc(e)}</button>`).join("")}
       </div>
-    </div>`;
+    </div>
+    <section id="recentes" class="mt-4" aria-label="Últimas jurisprudências"></section>`;
   for (const b of lista.querySelectorAll("[data-exemplo]")) {
     b.addEventListener("click", () => {
       $("q").value = b.dataset.exemplo;
       executar(1);
     });
+  }
+  carregarRecentes();
+}
+
+const DATA_CURTA = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC", day: "2-digit", month: "2-digit" });
+function dataCurta(iso) {
+  if (!iso) return "";
+  const d = new Date(`${iso}T00:00:00Z`);
+  return Number.isNaN(+d) ? iso : DATA_CURTA.format(d);
+}
+
+/** As últimas da janela, abaixo do estado vazio. A janela é do servidor: a
+ *  resposta traz `desde` e `dias`, e a página só repete o que ele disse. */
+async function carregarRecentes() {
+  const alvo = $("recentes");
+  if (!alvo) return;
+  const rotulo = $("recurso").selectedOptions[0]?.text ?? "";
+  alvo.innerHTML = `<p class="text-center py-3" style="color:var(--oab-texto-3);font-size:.88rem">
+    <span class="spinner-border spinner-border-sm me-2"></span>Carregando as últimas decisões…</p>`;
+  try {
+    const r = await recentes($("recurso").value, 1);
+    const cabecalho = `
+      <div class="cabecalho-recentes d-flex align-items-baseline justify-content-between flex-wrap gap-2">
+        <h2>Últimas dos ${r.dias ?? 7} dias — ${esc(rotulo)}</h2>
+        ${r.desde ? `<span class="desde">desde ${dataCurta(r.desde)}</span>` : ""}
+      </div>`;
+    if (!r.itens?.length) {
+      // Caso real, não hipótese: em embargos infringentes o acervo pára quase
+      // um mês atrás, e a janela vem vazia. Dizer isso é melhor que uma seção
+      // com título e nada embaixo.
+      alvo.innerHTML = `${cabecalho}
+        <div class="painel p-4 text-center" data-papel="recentes-vazio">
+          <p class="mb-0" style="font-size:.92rem;color:var(--oab-texto-2)">
+            Nenhum acórdão de <strong>${esc(rotulo)}</strong> julgado
+            ${r.desde ? `desde ${dataCurta(r.desde)}` : "no período"}.
+            Use a busca acima para consultar o acervo inteiro.</p>
+        </div>`;
+      return;
+    }
+    alvo.innerHTML = cabecalho;
+    for (const item of r.itens) alvo.appendChild(cartao(item, [], rotulo));
+  } catch {
+    alvo.innerHTML = "";   // a lista é um extra; falhar nela não estraga a página
   }
 }
 
@@ -318,7 +362,11 @@ async function carregarVocabulario() {
 }
 
 form.addEventListener("submit", (e) => { e.preventDefault(); executar(1); });
-$("recurso").addEventListener("change", carregarVocabulario);
+$("recurso").addEventListener("change", () => {
+  carregarVocabulario();
+  // A lista é por recurso: trocar o recurso troca a lista.
+  if (lista.dataset.estado === "inicial" || lista.dataset.estado === "vazio") carregarRecentes();
+});
 $("limpar").addEventListener("click", () => {
   form.reset();
   camara = "";

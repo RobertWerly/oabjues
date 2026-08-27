@@ -69,6 +69,13 @@ export async function vocabulario(recurso) {
   return chamar(`vocabulario&recurso=${encodeURIComponent(recurso)}`);
 }
 
+/** As últimas jurisprudências da janela que o SERVIDOR define — a página não
+ *  pede intervalo, e não tem como pedir: não há chave de data no contrato. */
+export async function recentes(recurso, pagina = 1) {
+  if (DEMO) return demoRecentes(recurso, pagina);
+  return chamar(`recentes/${encodeURIComponent(recurso)}&pagina=${pagina}`);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Modo demonstração.
 //
@@ -180,6 +187,20 @@ async function demoAcordao(id) {
   const i = DEMO_ITENS.find((x) => x.id === id);
   if (!i) throw new ErroApi("acórdão não encontrado", 404);
   return { ...i, inteiro_teor: DEMO_TEOR };
+}
+
+async function demoRecentes(recurso, pagina) {
+  await pausa(280);
+  // embargos_infringentes é o caso real que a medição achou: zero acórdãos na
+  // janela de 7 dias, porque o acervo desse recurso pára quase um mês atrás.
+  // A demonstração reproduz isso de propósito — é o estado que a página
+  // precisa saber desenhar.
+  const vazio = recurso === "embargos_infringentes";
+  const desde = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+  return {
+    itens: vazio || pagina > 1 ? [] : DEMO_ITENS,
+    pagina, tamanho: POR_PAGINA, tem_mais: false, desde, dias: 7,
+  };
 }
 
 async function demoVocabulario() {
