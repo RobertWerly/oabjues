@@ -24,20 +24,6 @@ if (DEMO) $("aviso-demo").hidden = false;
 
 for (const [valor, rotulo] of RECURSOS) $("recurso").add(new Option(rotulo, valor));
 
-// ── tema ──────────────────────────────────────────────────────────────────
-const raiz = document.documentElement;
-function aplicarTema(t) {
-  raiz.dataset.tema = t;
-  $("icone-tema").className = t === "escuro" ? "fas fa-sun" : "fas fa-moon";
-  try { localStorage.setItem("oabjus-tema", t); } catch { /* modo anônimo */ }
-}
-try {
-  const salvo = localStorage.getItem("oabjus-tema");
-  aplicarTema(salvo || (matchMedia("(prefers-color-scheme: dark)").matches ? "escuro" : "claro"));
-} catch { aplicarTema("claro"); }
-$("btn-tema").addEventListener("click", () =>
-  aplicarTema(raiz.dataset.tema === "escuro" ? "claro" : "escuro"));
-
 // ── seletor de câmara ─────────────────────────────────────────────────────
 $("seg-camara").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-camara]");
