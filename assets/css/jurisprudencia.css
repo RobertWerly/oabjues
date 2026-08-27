@@ -40,13 +40,16 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
    borrão em qualquer altura razoável. A seccional agora é tipografia de
    verdade — nítida em qualquer tela, e acompanha o zoom do navegador.
    O navy #183048 e o vermelho #C01818 foram amostrados da própria marca. */
-.marca-oab{display:inline-flex;align-items:center;gap:.5rem}
+.marca-oab{display:inline-flex;align-items:flex-end;gap:.18rem}
 .logo-oab{height:42px;width:auto;object-fit:contain}
+/* Lê-se OAB/ES, uma sigla só — por isso a barra é caractere e não régua:
+   régua separa dois blocos, barra une num nome. */
 .sigla-es{
   font-family:Montserrat,Arial,sans-serif;
-  font-weight:800;font-size:1.25rem;line-height:1;letter-spacing:.02em;
-  color:#183048;padding-left:.55rem;border-left:2px solid #C01818;
+  font-weight:800;font-size:1.3rem;line-height:1;letter-spacing:.01em;
+  color:#183048;padding-bottom:2px;
 }
+.sigla-es .barra{color:#C01818;font-weight:700;margin-right:.02em}
 .logo-x{font-weight:900;font-size:.75rem;color:var(--oab-texto-2)}
 
 .painel{
