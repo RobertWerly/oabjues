@@ -71,7 +71,7 @@ assets/js/api.js                cliente da API (+ modo demonstração)
 assets/js/jurisprudencia.js     a tela, JavaScript de navegador
 assets/vendor/bootstrap.min.css Bootstrap 5.3.3 vendorizado
 bff/jurisprudencia.php          assina com HMAC e repassa
-public/logos/                   JUES e OAB-ES
+public/logos/                   JUES e OAB (fundos recortados)
 ```
 
 O desenho vem do protótipo React que está na `main`; esta versão é a mesma tela

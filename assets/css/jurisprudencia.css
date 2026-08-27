@@ -35,7 +35,18 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
   font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   color:var(--oab-texto);border-left:2px solid var(--oab-borda);padding-left:.75rem;
 }
-.logo-parceria{height:34px;width:auto;max-width:130px;object-fit:contain}
+.logo-parceria{height:36px;width:auto;object-fit:contain}
+/* O "ESPÍRITO SANTO" saiu da imagem: em corpo pequeno dentro do PNG ele virava
+   borrão em qualquer altura razoável. A seccional agora é tipografia de
+   verdade — nítida em qualquer tela, e acompanha o zoom do navegador.
+   O navy #183048 e o vermelho #C01818 foram amostrados da própria marca. */
+.marca-oab{display:inline-flex;align-items:center;gap:.5rem}
+.logo-oab{height:42px;width:auto;object-fit:contain}
+.sigla-es{
+  font-family:Montserrat,Arial,sans-serif;
+  font-weight:800;font-size:1.25rem;line-height:1;letter-spacing:.02em;
+  color:#183048;padding-left:.55rem;border-left:2px solid #C01818;
+}
 .logo-x{font-weight:900;font-size:.75rem;color:var(--oab-texto-2)}
 
 .painel{
