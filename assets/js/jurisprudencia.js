@@ -284,10 +284,9 @@ async function carregarVocabulario() {
     const v = await vocabulario($("recurso").value);
     encher($("assunto"), v.assunto, "Todos");
     encher($("comarca"), v.comarca, "Todas");
-    $("nota-comarca").textContent =
-      "Cerca de 3 em cada 10 acórdãos não têm comarca registrada e não aparecem ao filtrar por ela.";
   } catch {
-    $("nota-comarca").textContent = "Não foi possível carregar as opções de filtro.";
+    // O elemento da nota não existe mais; o aviso vai para a área de mensagens.
+    nota('<i class="fas fa-info-circle me-1"></i> Não foi possível carregar as opções de filtro. A busca por texto continua funcionando.');
   }
 }
 
