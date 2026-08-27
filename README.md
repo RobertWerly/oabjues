@@ -7,6 +7,27 @@ Abra `index.html` — ela roda em **modo demonstração**, com acórdãos fictí
 enquanto o serviço não estiver conectado. Para falar com a API de verdade,
 publique o BFF (abaixo) e abra a página com `?demo=0`.
 
+## Por que HTML e CSS puros, e por que Bootstrap
+
+A `oabes.org.br` roda **Bootstrap 5.3.3 + jQuery 3.6.0**, servidos do próprio
+domínio com cache busting `?h=<md5>`, mais Font Awesome 5.12/4.7 e as fontes
+Montserrat/Roboto do Google Fonts. O shell é
+`<nav class="navbar navbar-expand-lg fixed-top">` — Bootstrap clássico.
+
+Esta página usa exatamente isso, sem build. As cores saem do
+`assets/css/styles.min.css` de produção deles:
+
+| | valor | onde aparece no portal |
+|---|---|---|
+| navy | `#274364` | é o `--bs-dark` do portal e a cor do botão primário |
+| navy escuro | `#1f3650` | estado ativo |
+| vermelho | `#d02015` | vermelho institucional |
+
+O Bootstrap vai **vendorizado** em `assets/vendor/`, como o portal já faz — a
+página abre offline e não depende de CDN de terceiro. **Ao embutir no template
+da OAB, remova essa linha**: o Bootstrap do portal já está carregado e uma
+segunda cópia brigaria com a primeira.
+
 ## Como as peças se encaixam
 
 ```
@@ -39,7 +60,22 @@ dependência além do que vem com o PHP (`hash_hmac`, cURL).
 
 3. Confirme que `/bff/jurisprudencia.php` é **executado**, não servido como
    texto — um `.php` servido como arquivo entrega o código, não o resultado.
-4. Em `assets/api.js`, ajuste `BASE` se o BFF não ficar em `/bff/`.
+4. Em `assets/js/api.js`, ajuste `BASE` se o BFF não ficar em `/bff/`.
+
+## Arquivos
+
+```
+index.html                      a página
+assets/css/jurisprudencia.css   só os deltas em cima do Bootstrap
+assets/js/api.js                cliente da API (+ modo demonstração)
+assets/js/jurisprudencia.js     a tela, JavaScript de navegador
+assets/vendor/bootstrap.min.css Bootstrap 5.3.3 vendorizado
+bff/jurisprudencia.php          assina com HMAC e repassa
+public/logos/                   JUES e OAB-ES
+```
+
+O desenho vem do protótipo React que está na `main`; esta versão é a mesma tela
+em HTML e CSS, sem passo de build.
 
 ## O que a página faz que um protótipo comum não faria
 

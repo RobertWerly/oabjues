@@ -10,7 +10,7 @@
 // ============================================================================
 
 /** Rota do BFF da OAB. No site real, aponta para onde o PHP for publicado. */
-const BASE = "/bff/jurisprudencia.php";
+const BASE = "bff/jurisprudencia.php";
 
 /** Sem backend publicado, a página roda com dados de demonstração. */
 export const DEMO = new URLSearchParams(location.search).get("demo") !== "0";
