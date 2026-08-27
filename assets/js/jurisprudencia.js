@@ -190,6 +190,38 @@ function cartao(item, radicais, rotuloRecurso) {
 }
 
 // ── busca ─────────────────────────────────────────────────────────────────
+/** Sugestões que preenchem o campo e já disparam a busca — quem chega na
+ *  página em branco não sabe o que ela aceita. */
+const EXEMPLOS = [
+  "nulidade da busca domiciliar",
+  "excesso de prazo",
+  "prisão preventiva",
+  "dosimetria da pena",
+];
+
+function estadoVazio({ inicial }) {
+  lista.dataset.estado = inicial ? "inicial" : "vazio";
+  lista.innerHTML = `
+    <div class="estado" data-papel="${inicial ? "inicial" : "vazio"}">
+      <div class="icone"><i class="fas fa-search"></i></div>
+      <h2>${inicial
+        ? "Pesquise a jurisprudência criminal do TJES"
+        : "Nenhuma decisão encontrada com esses filtros"}</h2>
+      <p>${inicial
+        ? "Digite um termo, o número de um processo, ou use os filtros acima. Comece por um destes:"
+        : "Tente menos filtros, outro tipo de recurso, ou uma destas buscas:"}</p>
+      <div class="exemplos">
+        ${EXEMPLOS.map((e) => `<button type="button" data-exemplo="${esc(e)}">${esc(e)}</button>`).join("")}
+      </div>
+    </div>`;
+  for (const b of lista.querySelectorAll("[data-exemplo]")) {
+    b.addEventListener("click", () => {
+      $("q").value = b.dataset.exemplo;
+      executar(1);
+    });
+  }
+}
+
 function montarPedido(n) {
   const p = { recurso: $("recurso").value, pagina: n };
   const q = $("q").value.trim();
@@ -221,12 +253,7 @@ async function executar(n) {
     }
 
     if (!r.itens?.length) {
-      lista.dataset.estado = "vazio";
-      lista.innerHTML = `<div class="painel p-5 text-center" data-papel="vazio">
-        <i class="fas fa-search fa-2x mb-2" style="color:var(--oab-texto-3)"></i>
-        <p class="fw-bold mb-3">Nenhuma decisão encontrada com os filtros selecionados</p>
-        <button type="button" class="btn btn-sm btn-oab" onclick="document.getElementById('limpar').click()">
-          Limpar filtros</button></div>`;
+      estadoVazio({ inicial: false });
       $("rotulo-pagina").textContent = "";
       return;
     }
@@ -299,13 +326,14 @@ $("limpar").addEventListener("click", () => {
     b.setAttribute("aria-pressed", String(b.dataset.camara === ""));
   }
   msgs.innerHTML = "";
-  lista.innerHTML = "";
-  lista.dataset.estado = "inicial";
   $("rotulo-pagina").textContent = "";
   paginacao.hidden = true;
-  carregarVocabulario();
+  estadoVazio({ inicial: true });
+  estadoVazio({ inicial: true });
+carregarVocabulario();
 });
 $("anterior").addEventListener("click", () => executar(Math.max(1, pagina - 1)));
 $("proxima").addEventListener("click", () => executar(Math.min(PAGINA_MAX, pagina + 1)));
 
+estadoVazio({ inicial: true });
 carregarVocabulario();
