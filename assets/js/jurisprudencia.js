@@ -121,7 +121,6 @@ function cartao(item, radicais, rotuloRecurso) {
         <div class="bloco-ementa mb-2">
           <span class="titulo">Trecho da ementa</span>
           <p class="cortada">${grifar(item.ementa ?? "", radicais)}</p>
-          <button type="button" class="link-ementa" data-acao="ementa">ver ementa inteira</button>
         </div>
 
         <div style="font-size:.85rem">
@@ -154,13 +153,6 @@ function cartao(item, radicais, rotuloRecurso) {
       i.className = "fas fa-check ms-1 text-success";
       setTimeout(() => { i.className = "far fa-copy ms-1 opacity-75"; }, 1500);
     } catch { /* sem permissão de área de transferência */ }
-  });
-
-  const p = el.querySelector(".bloco-ementa p");
-  el.querySelector('[data-acao="ementa"]').addEventListener("click", (e) => {
-    p.classList.toggle("cortada");
-    e.currentTarget.textContent = p.classList.contains("cortada")
-      ? "ver ementa inteira" : "recolher ementa";
   });
 
   const bTeor = el.querySelector('[data-acao="teor"]');

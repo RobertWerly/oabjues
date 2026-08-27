@@ -49,7 +49,20 @@ dependência além do que vem com o PHP (`hash_hmac`, cURL).
 ## Publicar
 
 1. Copie `index.html`, `assets/` e `bff/` para o servidor.
-2. Defina as variáveis de ambiente do processo PHP — **nunca no código, nunca no
+2. Gere a chave e o segredo (o segredo nunca sai do servidor):
+
+   ```
+   # identificador da chave — pode ser um nome
+   echo "oabes-prod"
+   # segredo — 48 bytes aleatórios
+   openssl rand -base64 48 | tr -d '\n'
+   ```
+
+   O mesmo par vai nos dois lados: no BFF da OAB (`OABJUS_CHAVE` e
+   `OABJUS_SEGREDO`) e no JurimetriaES (`OAB_API_CHAVES`, no formato
+   `chave:segredo`, aceitando vários separados por vírgula).
+
+3. Defina as variáveis de ambiente do processo PHP — **nunca no código, nunca no
    Git**:
 
    | variável | valor |
@@ -58,9 +71,9 @@ dependência além do que vem com o PHP (`hash_hmac`, cURL).
    | `OABJUS_CHAVE` | o identificador da chave, fornecido pelo JurimetriaES |
    | `OABJUS_SEGREDO` | o segredo correspondente |
 
-3. Confirme que `/bff/jurisprudencia.php` é **executado**, não servido como
+4. Confirme que `/bff/jurisprudencia.php` é **executado**, não servido como
    texto — um `.php` servido como arquivo entrega o código, não o resultado.
-4. Em `assets/js/api.js`, ajuste `BASE` se o BFF não ficar em `/bff/`.
+5. Em `assets/js/api.js`, ajuste `BASE` se o BFF não ficar em `/bff/`.
 
 ## Arquivos
 
