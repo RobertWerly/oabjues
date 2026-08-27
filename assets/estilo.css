@@ -1,0 +1,77 @@
+/* Protótipo de busca de jurisprudência — OAB-ES.
+   Sem framework: uma página institucional não precisa de 300 kB de JS. */
+:root{
+  --azul:#0B3D62; --azul-claro:#1668A6; --azul-fundo:#F3F6F9;
+  --texto:#1A1F26; --texto-2:#4C5764; --texto-3:#7B8794;
+  --linha:#D9E0E7; --linha-suave:#EAEFF3;
+  --branco:#fff; --aviso-fundo:#FDF6E3; --aviso-linha:#E5D4A1; --aviso-texto:#7A5C10;
+  --erro:#9B2C2C; --erro-fundo:#FDECEC;
+  --grifo:#FFF0A8;
+  --raio:4px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--azul-fundo);color:var(--texto);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.faixa{background:var(--azul);color:#fff;padding:.9rem 0}
+.faixa .interno{display:flex;align-items:center;gap:.8rem}
+.faixa .marca{font-weight:700;letter-spacing:.02em}
+.faixa .sub{font-size:.85rem;opacity:.85}
+.interno{max-width:1080px;margin:0 auto;padding:0 1.2rem}
+main{padding:2rem 0 4rem}
+h1{font-size:1.6rem;margin:0 0 .3rem;color:var(--azul)}
+.chamada{color:var(--texto-2);margin:0 0 1.6rem;max-width:46rem}
+
+form.busca{background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);
+  padding:1.2rem;margin-bottom:1.5rem}
+.linha{display:grid;gap:.9rem;margin-bottom:.9rem}
+.linha.g2{grid-template-columns:repeat(2,1fr)}
+.linha.g3{grid-template-columns:repeat(3,1fr)}
+label{display:block;font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;color:var(--texto-3);margin-bottom:.3rem}
+input,select{width:100%;padding:.6rem .7rem;font:inherit;font-size:.95rem;
+  border:1px solid var(--linha);border-radius:var(--raio);background:#fff;color:var(--texto)}
+input:focus,select:focus{outline:2px solid var(--azul-claro);outline-offset:1px;border-color:var(--azul-claro)}
+.acoes{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
+button{font:inherit;font-weight:600;padding:.6rem 1.4rem;border-radius:var(--raio);cursor:pointer;
+  border:1px solid var(--azul);background:var(--azul);color:#fff}
+button:hover{background:var(--azul-claro);border-color:var(--azul-claro)}
+button.secundario{background:transparent;color:var(--azul)}
+button[disabled]{opacity:.5;cursor:not-allowed}
+.dica{font-size:.83rem;color:var(--texto-3)}
+
+.caixa{padding:.85rem 1rem;border-radius:var(--raio);margin-bottom:1rem;font-size:.92rem}
+.caixa.aviso{background:var(--aviso-fundo);border:1px solid var(--aviso-linha);color:var(--aviso-texto)}
+.caixa.erro{background:var(--erro-fundo);border:1px solid #E7B9B9;color:var(--erro)}
+.caixa.neutra{background:var(--branco);border:1px solid var(--linha);color:var(--texto-2)}
+.caixa ul{margin:.4rem 0 0;padding-left:1.1rem}
+
+.card{background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);
+  padding:1.1rem 1.2rem;margin-bottom:.9rem}
+.card h2{font-size:1rem;margin:0 0 .5rem;color:var(--azul)}
+.meta{display:flex;flex-wrap:wrap;gap:.4rem .9rem;font-size:.82rem;color:var(--texto-2);
+  margin-bottom:.7rem;padding-bottom:.7rem;border-bottom:1px solid var(--linha-suave)}
+.meta b{color:var(--texto);font-weight:600}
+.selo{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;padding:.15rem .5rem;border:1px solid currentColor;border-radius:2px}
+.ementa{font-size:.92rem;color:var(--texto-2);white-space:pre-wrap;
+  max-height:11.5rem;overflow:hidden;position:relative}
+.ementa.aberta{max-height:none}
+.ementa mark{background:var(--grifo);color:inherit;padding:0 .1em}
+.rodape-card{display:flex;gap:.8rem;margin-top:.8rem;flex-wrap:wrap}
+.rodape-card button{padding:.4rem .9rem;font-size:.85rem;font-weight:500}
+
+.teor{margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--linha-suave);
+  font-size:.88rem;white-space:pre-wrap;color:var(--texto-2);
+  max-height:28rem;overflow-y:auto}
+
+.paginacao{display:flex;gap:.7rem;align-items:center;justify-content:center;margin-top:1.4rem}
+.paginacao span{font-size:.9rem;color:var(--texto-2)}
+
+.vazio{text-align:center;padding:3rem 1rem;color:var(--texto-3)}
+footer{border-top:1px solid var(--linha);padding:1.5rem 0;font-size:.82rem;color:var(--texto-3)}
+.carregando{display:inline-block;width:.9em;height:.9em;border:2px solid currentColor;
+  border-right-color:transparent;border-radius:50%;animation:gira .7s linear infinite;
+  vertical-align:-.1em;margin-right:.4rem}
+@keyframes gira{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.carregando{animation:none}}
+@media (max-width:760px){.linha.g2,.linha.g3{grid-template-columns:1fr}}
