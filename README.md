@@ -1,127 +1,123 @@
-# Busca de Jurisprudência — protótipo OAB-ES
+# Busca de Jurisprudência — OAB/ES
 
 Página de pesquisa de jurisprudência criminal do TJES para o site da OAB-ES,
 servida pelo acervo do **JurimetriaES**.
 
-Abra `index.html` — ela roda em **modo demonstração**, com acórdãos fictícios,
-enquanto o serviço não estiver conectado. Para falar com a API de verdade,
-publique o BFF (abaixo) e abra a página com `?demo=0`.
+**HTML, CSS e JavaScript de navegador. Sem build, sem `npm install`, sem passo
+de compilação.** Copiou os arquivos para o servidor, está no ar.
 
-## Por que HTML e CSS puros, e por que Bootstrap
+---
 
-A `oabes.org.br` roda **Bootstrap 5.3.3 + jQuery 3.6.0**, servidos do próprio
-domínio com cache busting `?h=<md5>`, mais Font Awesome 5.12/4.7 e as fontes
-Montserrat/Roboto do Google Fonts. O shell é
-`<nav class="navbar navbar-expand-lg fixed-top">` — Bootstrap clássico.
+## Ver funcionando agora
 
-Esta página usa exatamente isso, sem build. As cores saem do
-`assets/css/styles.min.css` de produção deles:
+Abra `index.html` no navegador. Ela sobe em **modo demonstração**, com acórdãos
+fictícios, e dá para clicar em tudo — buscar, filtrar, paginar, abrir inteiro
+teor.
 
-| | valor | onde aparece no portal |
-|---|---|---|
-| navy | `#274364` | é o `--bs-dark` do portal e a cor do botão primário |
-| navy escuro | `#1f3650` | estado ativo |
-| vermelho | `#d02015` | vermelho institucional |
+Precisa de um servidor local (o navegador bloqueia módulos em `file://`):
 
-O Bootstrap vai **vendorizado** em `assets/vendor/`, como o portal já faz — a
-página abre offline e não depende de CDN de terceiro. **Ao embutir no template
-da OAB, remova essa linha**: o Bootstrap do portal já está carregado e uma
-segunda cópia brigaria com a primeira.
+```
+python3 -m http.server 8000
+# depois abra http://localhost:8000
+```
+
+Para falar com a API de verdade: publique o BFF (abaixo) e abra com `?demo=0`.
+
+---
 
 ## Como as peças se encaixam
 
 ```
-navegador  ──►  bff/jurisprudencia.php   ──►  edge function oab-api  ──►  motor de busca
-   │              (servidor da OAB)              (JurimetriaES)          (já existente)
-   │              guarda a chave                 valida, traduz,
-   │              assina com HMAC                projeta, registra
+navegador  ──►  bff/jurisprudencia.php  ──►  API do JurimetriaES  ──►  motor de busca
+   │              (servidor da OAB)             (edge function)          (já existente)
+   │              guarda a chave                valida, traduz,
+   │              assina com HMAC               projeta, registra
    └── nunca vê a chave
 ```
 
-**Por que o BFF existe.** A autenticação é HMAC com chave secreta, e segredo não
-mora em navegador. `Origin` e `Referer` não servem: são cabeçalhos que um `curl`
-escolhe. Só com a assinatura feita no servidor da OAB é verdade que a API "só
-funciona no site da OAB".
+**Por que existe o BFF.** A autenticação é HMAC com chave secreta, e segredo não
+mora em navegador. `Origin` e `Referer` não servem de credencial: são cabeçalhos
+que qualquer cliente escolhe. Só com a assinatura feita no servidor da OAB é
+verdade que a API "só funciona no site da OAB".
 
-O BFF é PHP porque é o que o portal da OAB-ES já roda, e não usa nenhuma
-dependência além do que vem com o PHP (`hash_hmac`, cURL).
+Ele é PHP porque é o que o portal da OAB-ES já roda, e não usa dependência
+nenhuma além do que vem com o PHP (`hash_hmac` e cURL).
+
+---
 
 ## Publicar
 
-1. Copie `index.html`, `assets/` e `bff/` para o servidor.
-2. Receba o par **chave + segredo** do JurimetriaES, por canal fechado (cofre de
+1. Copie `index.html`, `assets/`, `public/` e `bff/` para o servidor.
+
+2. Receba o par **chave + segredo** do JurimetriaES por canal fechado (cofre de
    senhas — não por e-mail nem por ticket). O molde das variáveis está em
    `bff/.env.example`.
 
-3. Defina as variáveis de ambiente do processo PHP — **nunca no código, nunca no
-   Git**:
+3. Defina as variáveis no processo PHP — **nunca no código, nunca no Git**:
 
    | variável | valor |
    |---|---|
    | `OABJUS_URL` | `https://<projeto>.supabase.co/functions/v1/oab-api` |
-   | `OABJUS_CHAVE` | o identificador da chave, fornecido pelo JurimetriaES |
+   | `OABJUS_CHAVE` | o identificador da chave |
    | `OABJUS_SEGREDO` | o segredo correspondente |
 
-   **O segredo não pode ir para o navegador.** A autenticação é HMAC: cada
-   chamada vai assinada sobre método, rota, corpo, timestamp e nonce, com janela
-   de 5 minutos e nonce de uso único, e a assinatura é feita aqui, no servidor.
-   Se o segredo fosse para o JavaScript da página, qualquer visitante o leria no
-   código-fonte — e aí "só funciona no site da OAB" deixaria de ser verdade,
-   porque `Origin` e `Referer` são cabeçalhos que qualquer cliente escolhe.
-
 4. Confirme que `/bff/jurisprudencia.php` é **executado**, não servido como
-   texto — um `.php` servido como arquivo entrega o código, não o resultado.
-5. Em `assets/js/api.js`, ajuste `BASE` se o BFF não ficar em `/bff/`.
+   texto. Um `.php` entregue como arquivo mostra o código-fonte — e o código lê
+   o segredo.
 
-## Arquivos
+5. Abra a página sem `?demo=0` na URL para conferir a interface, e com `?demo=0`
+   para bater na API.
+
+### Embutir no template da OAB
+
+A página é autossuficiente, mas o portal já carrega Bootstrap 5.3.3. Ao colar
+o conteúdo dentro do template de vocês:
+
+- **remova** a linha `<link rel="stylesheet" href="assets/vendor/bootstrap.min.css">`
+  — duas cópias do Bootstrap brigam entre si;
+- mantenha `assets/css/jurisprudencia.css`, que só traz o que o Bootstrap não dá;
+- Font Awesome e as fontes Montserrat/Roboto o portal já carrega.
+
+---
+
+## Onde mexer
 
 ```
-index.html                      a página
-assets/css/jurisprudencia.css   só os deltas em cima do Bootstrap
-assets/js/api.js                cliente da API (+ modo demonstração)
-assets/js/jurisprudencia.js     a tela, JavaScript de navegador
-assets/vendor/bootstrap.min.css Bootstrap 5.3.3 vendorizado
-bff/jurisprudencia.php          assina com HMAC e repassa
-public/logos/                   JUES e OAB (fundos recortados)
+index.html                       a página inteira: cabeçalho, filtros, resultados
+assets/css/jurisprudencia.css    só os deltas em cima do Bootstrap (~130 linhas)
+assets/js/api.js                 cliente da API + os dados de demonstração
+assets/js/jurisprudencia.js      a tela: monta cartões, trata erros, pagina
+assets/vendor/bootstrap.min.css  Bootstrap 5.3.3 vendorizado
+bff/jurisprudencia.php           assina com HMAC e repassa
+public/logos/                    JUES e OAB, com fundo recortado
 ```
 
-O desenho vem do protótipo React que está na `main`; esta versão é a mesma tela
-em HTML e CSS, sem passo de build.
+| se você quiser… | mexa em |
+|---|---|
+| trocar cor, espaçamento, tamanho | `assets/css/jurisprudencia.css` — as cores são variáveis no topo |
+| mudar texto de rótulo ou aviso | `index.html` (formulário) e `assets/js/jurisprudencia.js` (mensagens) |
+| mudar o endereço do BFF | a constante `BASE`, no topo de `assets/js/api.js` |
+| mudar o que aparece no cartão | a função `cartao()` em `assets/js/jurisprudencia.js` |
+| trocar os dados de demonstração | `DEMO_ITENS` no fim de `assets/js/api.js` |
+| desligar o modo demonstração por padrão | a constante `DEMO`, em `assets/js/api.js` |
 
-## O que a página faz que um protótipo comum não faria
+As cores vêm do CSS de produção da própria OAB-ES: `#274364` é o navy do portal
+(o `--bs-dark` deles, e a cor do botão primário) e `#d02015` é o vermelho
+institucional.
 
-Três comportamentos existem por causa de como o motor de busca funciona de
-verdade, e não por capricho:
-
-- **Mostra quando a busca foi afrouxada.** Escolher um filtro pode fazer a lista
-  **crescer** — a exigência da busca é calibrada pelos acórdãos que sobraram
-  depois dos filtros, então remover os melhores baixa a régua. Medido no acervo:
-  uma pesquisa que devolvia 8 acórdãos passou a devolver 16 ao escolher um
-  magistrado, e os 16 casavam metade da pergunta. A página avisa em vez de
-  deixar o advogado ler resultados achando que casam a pergunta inteira.
-- **Grifa só o que o servidor disse ter usado.** A marcação vem do campo
-  `radicais` da resposta. Adivinhar o alcance do stemmer no navegador já falhou
-  duas vezes no aplicativo — "invasão de domicílio" não marcava "domiciliar".
-- **Não exibe contagem nenhuma.** A API não devolve total, por decisão de
-  produto. A navegação vive de `tem_mais`, e quando o teto de 200 resultados é
-  atingido a página diz isso, em vez de fingir que a lista acabou.
-
-Há um quarto, menor mas com o mesmo espírito: cerca de **3 em cada 10 acórdãos
-não têm comarca registrada**, então filtrar por comarca esconde parte do acervo.
-A página diz isso embaixo do formulário, para ninguém concluir que não existem
-acórdãos daquela comarca.
+---
 
 ## O que a API devolve
 
-Por acórdão: número do processo, data de julgamento, magistrado, câmara,
-assunto, resultado e a ementa inteira. O **inteiro teor** vem no endpoint de
+Por acórdão: **número do processo, data de julgamento, magistrado, câmara,
+assunto, resultado e a ementa inteira**. O **inteiro teor** vem no endpoint de
 detalhe, um acórdão por requisição.
 
-Não são devolvidos — nem existem no contrato — dados de jurimetria, perfil
+Não são devolvidos, e não existem no contrato: dados de jurimetria, perfil
 decisório, teses, classificações, resumos gerados por IA, nem qualquer contagem
 ou estatística agregada.
 
-## Limites
+### Limites
 
 - **200 resultados por pesquisa** (10 páginas de 20). Além disso, refine os
   filtros.
@@ -129,3 +125,25 @@ ou estatística agregada.
   motor assumiria habeas corpus em silêncio e esconderia cinco sextos do acervo.
 - Os filtros de assunto, comarca, câmara e magistrado aceitam **um valor cada**.
 - Não há filtro por período.
+
+---
+
+## Três coisas que a página faz de propósito
+
+Não são capricho de interface — vêm de como o motor de busca se comporta de
+fato, medido no acervo:
+
+**Avisa quando a busca foi afrouxada.** Escolher um filtro pode fazer a lista
+**crescer**: a exigência da busca é calibrada pelos acórdãos que sobraram depois
+dos filtros, então remover os melhores baixa a régua. Medido: uma pesquisa que
+devolvia 8 acórdãos passou a devolver 16 ao escolher um magistrado, e os 16
+casavam metade da pergunta. A página mostra o aviso em vez de deixar o advogado
+ler resultados achando que casam a pergunta inteira.
+
+**Grifa só o que o servidor disse ter usado.** A marcação vem do campo
+`radicais` da resposta. Adivinhar o alcance do stemmer no navegador já falhou
+duas vezes no aplicativo — "invasão de domicílio" não marcava "domiciliar".
+
+**Não exibe contagem nenhuma.** A API não devolve total, por decisão de produto.
+A navegação vive de `tem_mais`, e quando o teto de 200 é atingido a página diz
+isso, em vez de fingir que a lista acabou.
