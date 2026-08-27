@@ -1,0 +1,6 @@
+{
+  "name": "Busca de Jurisprudência Criminal",
+  "description": "Sistema minimalista de pesquisa de jurisprudência criminal do TJES.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

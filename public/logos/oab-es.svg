@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 240" width="100%" height="100%">
+  <defs>
+    <!-- Rich deep celestial blue gradient for sphere -->
+    <radialGradient id="oabSphereGrad" cx="36%" cy="32%" r="68%" fx="28%" fy="24%">
+      <stop offset="0%" stop-color="#3d8ee0" />
+      <stop offset="25%" stop-color="#1e6ab7" />
+      <stop offset="60%" stop-color="#104480" />
+      <stop offset="88%" stop-color="#082954" />
+      <stop offset="100%" stop-color="#031633" />
+    </radialGradient>
+
+    <!-- Ruby red gradient for letter A and B -->
+    <linearGradient id="oabRedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f63124" />
+      <stop offset="45%" stop-color="#db1614" />
+      <stop offset="100%" stop-color="#9a0c09" />
+    </linearGradient>
+
+    <!-- Shading for 3D bevel on A -->
+    <linearGradient id="facetShade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(0,0,0,0)" />
+      <stop offset="100%" stop-color="rgba(0,0,0,0.2)" />
+    </linearGradient>
+
+    <clipPath id="sphereClip">
+      <circle cx="106" cy="80" r="66" />
+    </clipPath>
+
+    <!-- Mask to punch transparent holes in letter B -->
+    <mask id="letterBMask">
+      <rect x="0" y="0" width="520" height="240" fill="#ffffff" />
+      <path d="M 346 36 H 360 C 374 36 382 40 382 50 C 382 59 374 63 360 63 H 346 Z" fill="#000000" />
+      <path d="M 346 86 H 362 C 378 86 387 91 387 103 C 387 114 378 120 362 120 H 346 Z" fill="#000000" />
+    </mask>
+  </defs>
+
+  <!-- 1. Letter 'O' (Globe with Southern Cross & White Ribbon) -->
+  <g clipPath="url(#sphereClip)">
+    <circle cx="106" cy="80" r="66" fill="url(#oabSphereGrad)" />
+
+    <!-- Grid lines -->
+    <ellipse cx="106" cy="80" rx="60" ry="30" stroke="rgba(255,255,255,0.18)" stroke-width="1.2" fill="none" transform="rotate(-20 106 80)" />
+    <ellipse cx="106" cy="80" rx="34" ry="64" stroke="rgba(255,255,255,0.14)" stroke-width="1.2" fill="none" transform="rotate(-20 106 80)" />
+
+    <!-- Stars -->
+    <circle cx="94" cy="56" r="2.2" fill="#ffffff" />
+    <circle cx="80" cy="72" r="2.0" fill="#ffffff" />
+    <circle cx="105" cy="94" r="2.3" fill="#ffffff" />
+    <circle cx="122" cy="68" r="2.1" fill="#ffffff" />
+    <circle cx="103" cy="74" r="1.6" fill="#ffffff" />
+    <circle cx="70" cy="98" r="1.8" fill="#ffffff" />
+    <circle cx="130" cy="100" r="1.9" fill="#ffffff" />
+    <circle cx="114" cy="112" r="1.7" fill="#ffffff" />
+    <circle cx="88" cy="120" r="1.6" fill="#ffffff" />
+    <circle cx="60" cy="82" r="1.5" fill="#ffffff" />
+    <circle cx="134" cy="52" r="1.7" fill="#ffffff" />
+
+    <!-- White Ribbon -->
+    <path d="M 30 84 Q 106 62 182 78 Q 106 72 30 96 Z" fill="#ffffff" />
+    <path id="ribbonPathOAB" d="M 36 88 Q 106 68 176 83" fill="none" />
+    <text font-size="5.8" fill="#082954" font-weight="900" letter-spacing="0.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+      <textPath href="#ribbonPathOAB" startOffset="50%" text-anchor="middle">
+        ORDEM DOS ADVOGADOS DO BRASIL
+      </textPath>
+    </text>
+  </g>
+
+  <!-- 2. Letter 'A' (Red Triangle) -->
+  <polygon points="248,14 314,146 182,146" fill="url(#oabRedGrad)" />
+  <polygon points="248,14 314,146 248,146" fill="url(#facetShade)" />
+
+  <!-- 3. Letter 'B' (Red Glyph with transparent cutouts) -->
+  <g mask="url(#letterBMask)">
+    <path
+      d="M 320 14 
+         H 360 
+         C 392 14 410 30 410 52 
+         C 410 68 396 80 380 84 
+         C 400 88 418 102 418 124 
+         C 418 146 398 146 360 146 
+         H 320 
+         Z"
+      fill="url(#oabRedGrad)"
+    />
+  </g>
+
+  <!-- 4. Subtitle: ESPÍRITO SANTO -->
+  <text
+    x="250"
+    y="204"
+    text-anchor="middle"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Liberation Sans', sans-serif"
+    font-weight="900"
+    font-size="36"
+    letter-spacing="5"
+    fill="#0a0a0a"
+  >
+    ESPÍRITO SANTO
+  </text>
+</svg>
