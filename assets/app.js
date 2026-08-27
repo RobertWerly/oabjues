@@ -163,7 +163,8 @@ async function executar(n) {
   carregando = true;
   $("enviar").disabled = true;
   msgs.innerHTML = "";
-  lista.innerHTML = '<div class="vazio"><span class="carregando"></span>Pesquisando…</div>';
+  lista.dataset.estado = "carregando";
+  lista.innerHTML = '<div class="vazio" data-papel="carregando"><span class="carregando"></span>Pesquisando…</div>';
   paginacao.hidden = true;
 
   const pedido = montarPedido(n);
@@ -179,12 +180,14 @@ async function executar(n) {
     }
 
     if (!r.itens?.length) {
-      lista.innerHTML = `<div class="vazio">
+      lista.dataset.estado = "vazio";
+      lista.innerHTML = `<div class="vazio" data-papel="vazio">
         Nenhum acórdão encontrado para esta combinação de filtros.<br>
         Tente menos filtros, ou outro tipo de recurso.</div>`;
       return;
     }
 
+    lista.dataset.estado = "lista";
     for (const item of r.itens) lista.appendChild(cardDe(item, r.radicais));
 
     // Sem contagem: a navegação vive de `tem_mais`, e o teto de 200 é dito
@@ -200,6 +203,7 @@ async function executar(n) {
         Há mais no acervo — <strong>refine os filtros</strong> para chegar neles.`);
     }
   } catch (e) {
+    lista.dataset.estado = "erro";
     lista.innerHTML = "";
     if (e instanceof ErroApi && e.status === 400) {
       nota("erro", `Não foi possível pesquisar: ${escapar(e.message)}`);
@@ -248,6 +252,7 @@ $("limpar").addEventListener("click", () => {
   form.reset();
   msgs.innerHTML = "";
   lista.innerHTML = "";
+  lista.dataset.estado = "inicial";
   paginacao.hidden = true;
   carregarVocabulario();
 });
