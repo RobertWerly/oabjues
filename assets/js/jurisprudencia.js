@@ -64,15 +64,30 @@ function limparEspacos(txt) {
 }
 
 /**
- * O trecho do card. O acórdão abre com "ESTADO DO ESPÍRITO SANTO / PODER
- * JUDICIÁRIO / PROCESSO Nº …" — duas linhas de brasão que não dizem nada sobre
- * o caso. Quando o texto traz "EMENTA", o trecho começa ali; é onde o tribunal
- * resume o julgado. O texto inteiro continua íntegro no botão.
+ * O trecho do card — três linhas, então cada palavra conta.
+ *
+ * Duas decisões, as duas medidas no acervo:
+ *
+ * 1. Espaço vira espaço, sempre. O acórdão vem com o brasão em coluna e uma
+ *    linha em branco entre cada parágrafo; preservar isso gastaria as três
+ *    linhas do card em "ESTADO DO ESPÍRITO SANTO" e ar. No botão o texto abre
+ *    com a formatação intacta.
+ * 2. Começa na ÚLTIMA "EMENTA" da primeira metade do documento, não na
+ *    primeira. O texto costuma trazer "EMENTA" como título, depois o
+ *    cabeçalho do processo (câmara, número, partes, relator) e só então
+ *    "ACÓRDÃO EMENTA: DIREITO PROCESSUAL PENAL…", que é o resumo de verdade.
+ *    Parar na primeira ocorrência mostra o cabeçalho; parar na última mostra
+ *    o julgado.
  */
 function trecho(txt) {
-  const limpo = limparEspacos(txt);
-  const m = /\bEMENTA\b/i.exec(limpo);
-  return m && m.index < limpo.length * 0.6 ? limpo.slice(m.index) : limpo;
+  const corrido = String(txt ?? "").replace(/\s+/g, " ").trim();
+  const limite = corrido.length * 0.6;
+  let inicio = 0;
+  for (const m of corrido.matchAll(/\bEMENTAS?\b\s*:?\s*/gi)) {
+    if (m.index > limite) break;
+    inicio = m.index + m[0].length;
+  }
+  return corrido.slice(inicio);
 }
 
 const FMT = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });

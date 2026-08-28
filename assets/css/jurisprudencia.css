@@ -115,6 +115,10 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
   color:var(--oab-azul);display:block;margin-bottom:.25rem;
 }
 .bloco-teor p{margin:0;white-space:pre-wrap}
+/* O inteiro teor vem do PDF com linhas longuíssimas sem ponto de quebra
+   (números de processo, nomes em caixa alta, citações). Sem isto a linha
+   estica o card e empurra os botões para fora da tela — medido. */
+.bloco-teor p,.teor{overflow-wrap:anywhere;word-break:break-word}
 .bloco-teor p.sem-texto{font-style:italic;color:var(--oab-texto-3)}
 /* 3 linhas: o trecho é acórdão, não ementa curta — em 2 linhas mal sai do
    cabeçalho da classe processual. O texto inteiro abre no botão. */
