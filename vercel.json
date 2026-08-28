@@ -2,6 +2,13 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": ".",
   "rewrites": [
-    { "source": "/bff/jurisprudencia.php", "destination": "/api/jurisprudencia" }
+    {
+      "source": "/bff/jurisprudencia.php",
+      "destination": "/api/jurisprudencia"
+    },
+    {
+      "source": "/api/oab-api/:rota*",
+      "destination": "/api/relay?rota=:rota*"
+    }
   ]
 }

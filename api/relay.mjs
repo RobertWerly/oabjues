@@ -18,21 +18,21 @@
 //
 // O QUE NÃO MUDA
 //
-// O código que decide é o mesmo, byte por byte: mesma allowlist de entrada,
-// mesma projeção de saída, mesmo teto de 200, mesma verificação de HMAC. O que
-// muda é quem serve. Trocar de volta é uma variável de ambiente: aponte
-// OABJUS_URL para a edge function outra vez.
+// O código que decide é o mesmo: mesma allowlist de entrada, mesma projeção de
+// saída, mesmo teto de 200, mesma verificação de HMAC. O que muda é quem
+// serve. Trocar de volta é uma variável de ambiente: aponte OABJUS_URL para a
+// edge function outra vez.
 //
 // VARIÁVEIS (Vercel › Settings › Environment Variables)
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OAB_API_CHAVES
 //
-// A rota mora em /api/oab-api/[...rota] de propósito: a assinatura cobre o
-// caminho depois de `oab-api`, e assim a base assinada aqui sai idêntica à do
-// Supabase.
+// O endereço público é /api/oab-api/<rota>, e o vercel.json reescreve para cá.
+// A assinatura cobre o caminho depois de `oab-api`, então a base assinada aqui
+// sai idêntica à do Supabase.
 //
-// Catch-all OBRIGATÓRIO, não opcional: medido, com [[...rota]] a Vercel casava
-// /api/oab-api/busca e devolvia 404 em /api/oab-api/recentes/habeas_corpus —
-// duas das quatro rotas ficavam fora do ar.
+// Reescrita nomeada, e não rota dinâmica de arquivo: medido, com
+// [[...rota]].mjs a Vercel casava /api/oab-api/busca e devolvia NOT_FOUND em
+// /api/oab-api/recentes/habeas_corpus — metade das rotas fora do ar.
 // ============================================================================
 
 var __defProp = Object.defineProperty;
@@ -1076,7 +1076,13 @@ async function carregar() {
 async function handler(req, res) {
   try {
     const { atender: atender2 } = await carregar();
-    const url = new URL(req.url, `https://${req.headers.host ?? "localhost"}`);
+    const original = new URL(req.url, `https://${req.headers.host ?? "localhost"}`);
+    const rota = String(original.searchParams.get("rota") ?? "").replace(/^\/+/, "");
+    original.searchParams.delete("rota");
+    const url = new URL(
+      `/oab-api/${rota}${original.search}`,
+      `https://${req.headers.host ?? "localhost"}`
+    );
     const corpo = req.method === "POST" ? await lerCorpo(req) : void 0;
     const pedido = new Request(url, {
       method: req.method,
