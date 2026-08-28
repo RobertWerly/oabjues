@@ -62,8 +62,15 @@ if ($metodo === 'POST') {
     }
 }
 
-$caminho = '/' . ltrim(parse_url($base, PHP_URL_PATH) ?: '', '/') . '/' . $rota;
-$caminho = preg_replace('#/+#', '/', $caminho);
+// A assinatura cobre a ROTA CANÔNICA, não o caminho completo da URL.
+//
+// MEDIDO em produção: o gateway do Supabase corta o prefixo /functions/v1
+// antes de a função ver a requisição — ela enxerga /oab-api/busca, não
+// /functions/v1/oab-api/busca. Assinar o caminho completo fazia os dois lados
+// assinarem strings diferentes, e NENHUMA chamada autenticava.
+//
+// A rota canônica é só o que vem depois de oab-api, com barra na frente.
+$caminho = '/' . $rota;
 
 $destino = rtrim($base, '/') . '/' . $rota;
 if ($rota === 'vocabulario' && isset($_GET['recurso'])) {
