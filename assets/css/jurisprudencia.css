@@ -60,8 +60,12 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
 /* As duas pontas do período lado a lado, com o "até" entre elas. O `min-width:0`
    é o que impede os dois <input type="date"> de estourarem a coluna: o campo
    de data tem largura intrínseca grande e o flex respeita isso por padrão. */
-.periodo{display:flex;align-items:center;gap:.4rem}
-.periodo input{min-width:0;flex:1 1 0}
+.periodo{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem}
+/* `flex-basis` de 135px e `flex-wrap` juntos: onde couber, os dois campos
+   ficam lado a lado; onde não couber, eles QUEBRAM em vez de encolher. Medido:
+   abaixo de ~135px o Chrome não estreita o campo de data, ele CORTA o texto, e
+   "01/01/2026" vira "/01/2026" sem nenhum sinal de que faltou espaço. */
+.periodo input{min-width:0;flex:1 1 135px}
 .periodo span{font-size:.75rem;color:var(--oab-texto-3);flex:0 0 auto}
 .dica{display:block;margin-top:.25rem;font-size:.72rem;color:var(--oab-texto-3)}
 .form-control,.form-select{
