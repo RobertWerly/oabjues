@@ -38,7 +38,7 @@ if (typeof globalThis.Deno === "undefined") {
 
 // supabase/functions/_shared/oabApi/postgrest.ts
 function criarCliente(url, chaveServico) {
-  const base = url.replace(/\/+$/, "");
+  const base = (url ?? "").replace(/\/+$/, "");
   const cabecalhos = {
     "content-type": "application/json",
     apikey: chaveServico,
@@ -931,6 +931,9 @@ async function atender(req) {
   const segs = url.pathname.split("/").filter(Boolean);
   const i = segs.indexOf("oab-api");
   const rota = i >= 0 ? segs.slice(i + 1) : segs;
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    return json({ erro: "API n\xE3o configurada" }, 503, origem);
+  }
   if (CHAVES.size === 0) {
     return json({ erro: "API n\xE3o configurada" }, 503, origem);
   }
