@@ -5,10 +5,6 @@
     {
       "source": "/bff/jurisprudencia.php",
       "destination": "/api/jurisprudencia"
-    },
-    {
-      "source": "/api/oab-api/:rota*",
-      "destination": "/api/relay?rota=:rota*"
     }
   ]
 }

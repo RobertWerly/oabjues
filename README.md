@@ -19,15 +19,14 @@ Copiou os arquivos para o servidor, está no ar.
 │  bff/            o intermediário que guarda a chave e assina (PHP)
 │
 ├─ SÓ DO PROTÓTIPO NA VERCEL — NÃO COPIAR PARA O PORTAL ─────────────
-│  api/            o BFF em Node + a API empacotada (ver api/README.md)
+│  api/            o mesmo BFF, em Node (ver api/README.md)
 │  vercel.json     rotas do deploy na Vercel
 │  .vercelignore   mantém o .php fora do deploy da Vercel
 ```
 
 O protótipo publicado (`oabjues.vercel.app`) usa a metade de baixo porque a
 Vercel não roda PHP. No portal da OAB o papel inteiro é do
-`bff/jurisprudencia.php`, e a pasta `api/` não deve existir lá — o relay dela
-usa uma credencial de banco do JurimetriaES que não acompanha esta entrega.
+`bff/jurisprudencia.php`, e a pasta `api/` não deve existir lá.
 
 A divisão que faz a segurança valer: **a OAB fica com a página, o BFF e a
 chave; o JurimetriaES fica com a API, o banco e o motor de busca.** A OAB
