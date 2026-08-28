@@ -6,6 +6,9 @@ servida pelo acervo do **JurimetriaES**.
 **HTML, CSS e JavaScript de navegador. Sem build, sem `npm install`, sem passo
 de compilação.** Copiou os arquivos para o servidor, está no ar.
 
+> **Recebendo este repositório para publicar?** Comece por **[ENTREGA.md](ENTREGA.md)** —
+> está tudo lá, em ordem.
+
 ---
 
 ## Ver funcionando agora
