@@ -31,10 +31,15 @@
 // Supabase.
 // ============================================================================
 
-// ../../../tmp/claude-0/-home-user/0eeb1014-9b44-5c85-8381-7f498463bf52/scratchpad/shim-deno.mjs
-if (typeof globalThis.Deno === "undefined") {
-  globalThis.Deno = { env: { get: (nome) => process.env[nome] } };
-}
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 
 // supabase/functions/_shared/oabApi/postgrest.ts
 function criarCliente(url, chaveServico) {
@@ -67,18 +72,13 @@ function criarCliente(url, chaveServico) {
     })
   };
 }
+var init_postgrest = __esm({
+  "supabase/functions/_shared/oabApi/postgrest.ts"() {
+    "use strict";
+  }
+});
 
 // supabase/functions/_shared/busca/plano.ts
-var LIMITES = {
-  /** conceitos por pergunta */
-  conceitos: 12,
-  /** realizações por conceito */
-  realizacoes: 16,
-  /** caracteres da pergunta */
-  caracteres: 2e3,
-  /** termos de conteúdo por conceito antes de gerar só as formas principais */
-  termosParaFormasCompletas: 4
-};
 function hashPlano(conceitos, unico, numero) {
   const chave = conceitos.map((c) => {
     const termos = c.termos.slice().sort().join("+");
@@ -94,19 +94,24 @@ function hashPlano(conceitos, unico, numero) {
   }
   return h.toString(16).padStart(8, "0");
 }
+var LIMITES;
+var init_plano = __esm({
+  "supabase/functions/_shared/busca/plano.ts"() {
+    "use strict";
+    LIMITES = {
+      /** conceitos por pergunta */
+      conceitos: 12,
+      /** realizações por conceito */
+      realizacoes: 16,
+      /** caracteres da pergunta */
+      caracteres: 2e3,
+      /** termos de conteúdo por conceito antes de gerar só as formas principais */
+      termosParaFormasCompletas: 4
+    };
+  }
+});
 
 // supabase/functions/_shared/busca/normalizar.ts
-var TYPOS = [
-  [/\bnuilidades\b/gi, "nulidades"],
-  [/\bnuilidade\b/gi, "nulidade"],
-  [/\bnulidae\b/gi, "nulidade"],
-  [/\bnuldiade\b/gi, "nulidade"],
-  [/\bhomoafectiv([oa]s?)\b/gi, "homoafetiv$1"],
-  [/\b(h+i+micidio|hh?micidio)\b/gi, "homicidio"],
-  [/\bvuneravel\b/gi, "vulneravel"],
-  [/\bprizao\b/gi, "prisao"],
-  [/\bilegau\b/gi, "ilegal"]
-];
 function corrigirTypos(texto2) {
   let v = texto2;
   for (const [re, para] of TYPOS) v = v.replace(re, para);
@@ -122,38 +127,54 @@ function limitarTamanho(texto2) {
   if (texto2.length <= LIMITES.caracteres) return { texto: texto2, truncou: false };
   return { texto: texto2.slice(0, LIMITES.caracteres), truncou: true };
 }
-var LIGADORES = /* @__PURE__ */ new Set(["de", "da", "do", "das", "dos"]);
-var VAZIAS = /* @__PURE__ */ new Set([
-  "de",
-  "da",
-  "do",
-  "das",
-  "dos",
-  "e",
-  "a",
-  "o",
-  "as",
-  "os",
-  "em",
-  "no",
-  "na",
-  "nos",
-  "nas",
-  "por",
-  "para",
-  "com",
-  "que"
-]);
-var SIGLAS = /* @__PURE__ */ new Set(["hc", "mp", "re", "ap", "tj", "rese", "pad", "cp", "cpp", "lep"]);
 function ehConteudo(token) {
   if (VAZIAS.has(token)) return false;
   if (token.length >= 3) return true;
   return SIGLAS.has(token) || /^\d+$/.test(token);
 }
+var TYPOS, LIGADORES, VAZIAS, SIGLAS;
+var init_normalizar = __esm({
+  "supabase/functions/_shared/busca/normalizar.ts"() {
+    "use strict";
+    init_plano();
+    TYPOS = [
+      [/\bnuilidades\b/gi, "nulidades"],
+      [/\bnuilidade\b/gi, "nulidade"],
+      [/\bnulidae\b/gi, "nulidade"],
+      [/\bnuldiade\b/gi, "nulidade"],
+      [/\bhomoafectiv([oa]s?)\b/gi, "homoafetiv$1"],
+      [/\b(h+i+micidio|hh?micidio)\b/gi, "homicidio"],
+      [/\bvuneravel\b/gi, "vulneravel"],
+      [/\bprizao\b/gi, "prisao"],
+      [/\bilegau\b/gi, "ilegal"]
+    ];
+    LIGADORES = /* @__PURE__ */ new Set(["de", "da", "do", "das", "dos"]);
+    VAZIAS = /* @__PURE__ */ new Set([
+      "de",
+      "da",
+      "do",
+      "das",
+      "dos",
+      "e",
+      "a",
+      "o",
+      "as",
+      "os",
+      "em",
+      "no",
+      "na",
+      "nos",
+      "nas",
+      "por",
+      "para",
+      "com",
+      "que"
+    ]);
+    SIGLAS = /* @__PURE__ */ new Set(["hc", "mp", "re", "ap", "tj", "rese", "pad", "cp", "cpp", "lep"]);
+  }
+});
 
 // supabase/functions/_shared/busca/numeroProcesso.ts
-var DIGITOS_CNJ = 20;
-var PADRAO = /(?<!\d)\d{7}[-.\d]*/g;
 function numeroDeProcesso(bruto) {
   if (!bruto) return null;
   for (const achado of bruto.matchAll(PADRAO)) {
@@ -165,9 +186,16 @@ function numeroDeProcesso(bruto) {
 function semONumero(bruto) {
   return bruto.replace(PADRAO, " ").replace(/\s+/g, " ").trim();
 }
+var DIGITOS_CNJ, PADRAO;
+var init_numeroProcesso = __esm({
+  "supabase/functions/_shared/busca/numeroProcesso.ts"() {
+    "use strict";
+    DIGITOS_CNJ = 20;
+    PADRAO = /(?<!\d)\d{7}[-.\d]*/g;
+  }
+});
 
 // supabase/functions/_shared/busca/segmentar.ts
-var CATALOGO_VAZIO = { frases: /* @__PURE__ */ new Set(), colocacoes: /* @__PURE__ */ new Set() };
 function segmentar(texto2, catalogo = CATALOGO_VAZIO) {
   const norm = normalizar(texto2);
   if (!norm) return [];
@@ -220,30 +248,16 @@ function segmentar(texto2, catalogo = CATALOGO_VAZIO) {
 function comoConceito(b) {
   return { termos: b.termos, realizacoes: [], peso: 0, origem: b.origem };
 }
+var CATALOGO_VAZIO;
+var init_segmentar = __esm({
+  "supabase/functions/_shared/busca/segmentar.ts"() {
+    "use strict";
+    init_normalizar();
+    CATALOGO_VAZIO = { frases: /* @__PURE__ */ new Set(), colocacoes: /* @__PURE__ */ new Set() };
+  }
+});
 
 // supabase/functions/_shared/busca/morfologia.ts
-var IRREGULARES = /* @__PURE__ */ new Map([
-  ["mao", ["maos"]],
-  ["pao", ["paes"]],
-  ["alemao", ["alemaes"]],
-  ["cidadao", ["cidadaos"]],
-  // "réu" flexiona em "réus" e no feminino "ré" — e o feminino NÃO entra.
-  //
-  // Não é esquecimento: é que depois de tirar o acento "ré" vira `re`, duas
-  // letras, e `re` não é a palavra — é a abreviação de Recurso Extraordinário,
-  // que é o que o acervo escreve. Medido: o lexema `re` está em 2.026 acórdãos;
-  // lidos 60 deles, 43 são "RE 603.616/RO" e parentes, 16 são a ré de verdade.
-  // Três de cada quatro casamentos seriam de uma sigla do STF.
-  //
-  // E o estrago não parava no recorte. O destaque casa por PREFIXO do lexema,
-  // que é como o stem do Postgres alcança a flexão — com um lexema de duas
-  // letras isso vira "toda palavra que começa com re". Medido no topo de
-  // "excesso de prazo na formação da culpa em réu preso", em produção:
-  // "redesignações", "residência", "reiteração", "requerendo", "revogação",
-  // "recebimento", "resposta" — 13 das 177 marcas do topo das 15 buscas.
-  ["reu", ["reus"]],
-  ["juiz", ["juizes"]]
-]);
 function plurais(p) {
   const irr = IRREGULARES.get(p);
   if (irr) return irr.slice();
@@ -285,9 +299,36 @@ function formasDe(termo, sinonimos) {
   }
   return [...set];
 }
+var IRREGULARES;
+var init_morfologia = __esm({
+  "supabase/functions/_shared/busca/morfologia.ts"() {
+    "use strict";
+    IRREGULARES = /* @__PURE__ */ new Map([
+      ["mao", ["maos"]],
+      ["pao", ["paes"]],
+      ["alemao", ["alemaes"]],
+      ["cidadao", ["cidadaos"]],
+      // "réu" flexiona em "réus" e no feminino "ré" — e o feminino NÃO entra.
+      //
+      // Não é esquecimento: é que depois de tirar o acento "ré" vira `re`, duas
+      // letras, e `re` não é a palavra — é a abreviação de Recurso Extraordinário,
+      // que é o que o acervo escreve. Medido: o lexema `re` está em 2.026 acórdãos;
+      // lidos 60 deles, 43 são "RE 603.616/RO" e parentes, 16 são a ré de verdade.
+      // Três de cada quatro casamentos seriam de uma sigla do STF.
+      //
+      // E o estrago não parava no recorte. O destaque casa por PREFIXO do lexema,
+      // que é como o stem do Postgres alcança a flexão — com um lexema de duas
+      // letras isso vira "toda palavra que começa com re". Medido no topo de
+      // "excesso de prazo na formação da culpa em réu preso", em produção:
+      // "redesignações", "residência", "reiteração", "requerendo", "revogação",
+      // "recebimento", "resposta" — 13 das 177 marcas do topo das 15 buscas.
+      ["reu", ["reus"]],
+      ["juiz", ["juizes"]]
+    ]);
+  }
+});
 
 // supabase/functions/_shared/busca/realizacoes.ts
-var FOLGA = 2;
 function df(termos, freq) {
   let min = Number.POSITIVE_INFINITY;
   for (const t of termos) {
@@ -350,9 +391,17 @@ function discriminancia(df2, acervo) {
 function pesoConceito(termos, freq, acervo) {
   return discriminancia(df(termos, freq), acervo);
 }
+var FOLGA;
+var init_realizacoes = __esm({
+  "supabase/functions/_shared/busca/realizacoes.ts"() {
+    "use strict";
+    init_plano();
+    init_morfologia();
+    FOLGA = 2;
+  }
+});
 
 // supabase/functions/_shared/busca/planejar.ts
-var SEM_SINONIMOS = /* @__PURE__ */ new Map();
 function temOperadores(bruto) {
   return /["/,]/.test(bruto) || /(^|\s)-\S/.test(bruto);
 }
@@ -412,15 +461,20 @@ function planejar(entrada, ctx = {}) {
     avisos
   };
 }
+var SEM_SINONIMOS;
+var init_planejar = __esm({
+  "supabase/functions/_shared/busca/planejar.ts"() {
+    "use strict";
+    init_normalizar();
+    init_numeroProcesso();
+    init_segmentar();
+    init_realizacoes();
+    init_plano();
+    SEM_SINONIMOS = /* @__PURE__ */ new Map();
+  }
+});
 
 // supabase/functions/_shared/busca/catalogo.ts
-var CATALOGO_AUSENTE = {
-  catalogo: { frases: /* @__PURE__ */ new Set(), colocacoes: /* @__PURE__ */ new Set() },
-  frequencias: /* @__PURE__ */ new Map(),
-  acervo: 0,
-  sinonimos: /* @__PURE__ */ new Map(),
-  degradado: true
-};
 function interpretar(bruto) {
   const p = bruto ?? {};
   const lista = (v) => Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
@@ -453,9 +507,6 @@ function interpretar(bruto) {
     degradado: false
   };
 }
-var TTL_MS = 10 * 6e4;
-var cache = null;
-var emVoo = null;
 async function carregarCatalogo(rpc, agora = Date.now()) {
   if (cache && agora - cache.em < TTL_MS) return cache.valor;
   if (emVoo) return emVoo;
@@ -474,53 +525,24 @@ async function carregarCatalogo(rpc, agora = Date.now()) {
   })();
   return emVoo;
 }
+var CATALOGO_AUSENTE, TTL_MS, cache, emVoo;
+var init_catalogo = __esm({
+  "supabase/functions/_shared/busca/catalogo.ts"() {
+    "use strict";
+    CATALOGO_AUSENTE = {
+      catalogo: { frases: /* @__PURE__ */ new Set(), colocacoes: /* @__PURE__ */ new Set() },
+      frequencias: /* @__PURE__ */ new Map(),
+      acervo: 0,
+      sinonimos: /* @__PURE__ */ new Map(),
+      degradado: true
+    };
+    TTL_MS = 10 * 6e4;
+    cache = null;
+    emVoo = null;
+  }
+});
 
 // supabase/functions/_shared/oabApi/contrato.ts
-var RECURSOS = [
-  "habeas_corpus",
-  "apelacao_criminal",
-  "agravo_execucao",
-  "recurso_sentido_estrito",
-  "revisao_criminal",
-  "embargos_infringentes"
-];
-var PAGINA_MAX = 10;
-var POR_PAGINA = 20;
-var ErroContrato = class extends Error {
-  // Campo declarado e atribuído no corpo, e não como parameter property: a
-  // forma abreviada não é apagável só com remoção de tipos, e este módulo
-  // precisa rodar tanto no Deno da edge function quanto no Node dos testes.
-  campo;
-  constructor(campo, mensagem) {
-    super(mensagem);
-    this.name = "ErroContrato";
-    this.campo = campo;
-  }
-};
-var TRADUCAO = {
-  camara: "orgaoJulgador",
-  assunto: "assunto",
-  // SINGULAR: casa assunto_canonico OU assunto livre
-  magistrado: "magistrado",
-  // SINGULAR: normaliza caixa e acento
-  comarca: "comarcas"
-  // o motor só tem a forma array para comarca
-};
-var RECUSADAS = {
-  resultado: "desliga a trava de m\xE9rito no motor (medido: 'N\xE3o conhecido' devolve 1.329 ac\xF3rd\xE3os, todos n\xE3o-m\xE9rito)",
-  classeResultado: "mesma trava que 'resultado'",
-  incluirNaoConhecido: "traz n\xE3o-m\xE9rito para o recorte",
-  incluirPrejudicado: "traz n\xE3o-m\xE9rito para o recorte",
-  assuntos: "o array casa s\xF3 o assunto can\xF4nico e devolve 0; use 'assunto'",
-  subAssunto: "o valor n\xE3o sobrevive \xE0 proje\xE7\xE3o, ent\xE3o o site nunca saberia disc\xE1-lo",
-  subAssuntos: "idem",
-  magistrados: "o array casa igualdade crua e devolve 0; use 'magistrado'",
-  teses: "tese n\xE3o sai desta API",
-  tiposPedido: "n\xE3o sai desta API",
-  ordenacao: "a ordem \xE9 do servidor; o cliente n\xE3o escolhe",
-  dataInicio: "a janela \xE9 fixada pelo servidor em /recentes; o cliente n\xE3o pede intervalo (medido: dataInicio='1900-01-01' devolveria o acervo inteiro, 8.235 em habeas corpus contra 118 na janela de 7 dias)",
-  dataFim: "a janela \xE9 fixada pelo servidor; o cliente n\xE3o pede intervalo"
-};
 function texto(v, campo) {
   if (typeof v !== "string") throw new ErroContrato(campo, `${campo} deve ser texto`);
   const t = v.trim();
@@ -528,12 +550,6 @@ function texto(v, campo) {
   if (t.length > 200) throw new ErroContrato(campo, `${campo} passa de 200 caracteres`);
   return t;
 }
-var CHAVES_BUSCA = [...Object.keys(TRADUCAO), "recurso", "q", "pagina"];
-var CHAVES_RECENTES = ["recurso", "pagina"];
-var OPCOES_RECENTES = {
-  aceita: CHAVES_RECENTES,
-  msgTeto: "esta lista mostra as \xFAltimas 200; use a busca para ir al\xE9m"
-};
 function validarPedido(corpo, opcoes = {}) {
   const conhecidas = new Set(opcoes.aceita ?? CHAVES_BUSCA);
   for (const chave of Object.keys(corpo ?? {})) {
@@ -625,17 +641,72 @@ function projetarAvisos(bruto) {
 function projetarRadicais(bruto) {
   return Array.isArray(bruto) ? bruto : [];
 }
-var DIAS_RECENTES = 7;
 function janelaRecentes(agora = Date.now()) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date(agora - DIAS_RECENTES * 864e5));
 }
 function janelaValida(d) {
   return /^\d{4}-\d{2}-\d{2}$/.test(d);
 }
+var RECURSOS, PAGINA_MAX, POR_PAGINA, ErroContrato, TRADUCAO, RECUSADAS, CHAVES_BUSCA, CHAVES_RECENTES, OPCOES_RECENTES, DIAS_RECENTES;
+var init_contrato = __esm({
+  "supabase/functions/_shared/oabApi/contrato.ts"() {
+    "use strict";
+    RECURSOS = [
+      "habeas_corpus",
+      "apelacao_criminal",
+      "agravo_execucao",
+      "recurso_sentido_estrito",
+      "revisao_criminal",
+      "embargos_infringentes"
+    ];
+    PAGINA_MAX = 10;
+    POR_PAGINA = 20;
+    ErroContrato = class extends Error {
+      // Campo declarado e atribuído no corpo, e não como parameter property: a
+      // forma abreviada não é apagável só com remoção de tipos, e este módulo
+      // precisa rodar tanto no Deno da edge function quanto no Node dos testes.
+      campo;
+      constructor(campo, mensagem) {
+        super(mensagem);
+        this.name = "ErroContrato";
+        this.campo = campo;
+      }
+    };
+    TRADUCAO = {
+      camara: "orgaoJulgador",
+      assunto: "assunto",
+      // SINGULAR: casa assunto_canonico OU assunto livre
+      magistrado: "magistrado",
+      // SINGULAR: normaliza caixa e acento
+      comarca: "comarcas"
+      // o motor só tem a forma array para comarca
+    };
+    RECUSADAS = {
+      resultado: "desliga a trava de m\xE9rito no motor (medido: 'N\xE3o conhecido' devolve 1.329 ac\xF3rd\xE3os, todos n\xE3o-m\xE9rito)",
+      classeResultado: "mesma trava que 'resultado'",
+      incluirNaoConhecido: "traz n\xE3o-m\xE9rito para o recorte",
+      incluirPrejudicado: "traz n\xE3o-m\xE9rito para o recorte",
+      assuntos: "o array casa s\xF3 o assunto can\xF4nico e devolve 0; use 'assunto'",
+      subAssunto: "o valor n\xE3o sobrevive \xE0 proje\xE7\xE3o, ent\xE3o o site nunca saberia disc\xE1-lo",
+      subAssuntos: "idem",
+      magistrados: "o array casa igualdade crua e devolve 0; use 'magistrado'",
+      teses: "tese n\xE3o sai desta API",
+      tiposPedido: "n\xE3o sai desta API",
+      ordenacao: "a ordem \xE9 do servidor; o cliente n\xE3o escolhe",
+      dataInicio: "a janela \xE9 fixada pelo servidor em /recentes; o cliente n\xE3o pede intervalo (medido: dataInicio='1900-01-01' devolveria o acervo inteiro, 8.235 em habeas corpus contra 118 na janela de 7 dias)",
+      dataFim: "a janela \xE9 fixada pelo servidor; o cliente n\xE3o pede intervalo"
+    };
+    CHAVES_BUSCA = [...Object.keys(TRADUCAO), "recurso", "q", "pagina"];
+    CHAVES_RECENTES = ["recurso", "pagina"];
+    OPCOES_RECENTES = {
+      aceita: CHAVES_RECENTES,
+      msgTeto: "esta lista mostra as \xFAltimas 200; use a busca para ir al\xE9m"
+    };
+    DIAS_RECENTES = 7;
+  }
+});
 
 // supabase/functions/_shared/oabApi/auth.ts
-var JANELA_MS = 5 * 6e4;
-var enc = new TextEncoder();
 function hex(buf) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
@@ -695,19 +766,20 @@ async function autenticar(req, rota, corpo, chaves, consumirNonce, agora = Date.
   if (!await consumirNonce(chave, nonce)) return { ok: false, motivo: "nonce j\xE1 usado" };
   return { ok: true, id: { chave } };
 }
+var JANELA_MS, enc;
+var init_auth = __esm({
+  "supabase/functions/_shared/oabApi/auth.ts"() {
+    "use strict";
+    JANELA_MS = 5 * 6e4;
+    enc = new TextEncoder();
+  }
+});
 
 // supabase/functions/oab-api/index.ts
-var SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-var SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-var CHAVES_ENV = lerChaves(Deno.env.get("OAB_API_CHAVES"));
-var ORIGENS_ENV = (Deno.env.get("OAB_API_ORIGENS") ?? "https://www.oabes.org.br,https://oabes.org.br").split(",").map((s) => s.trim()).filter(Boolean);
-var TETO_ENV = Number(Deno.env.get("OAB_API_TETO_DOCS_DIA") ?? "0");
-var CHAVES = CHAVES_ENV;
-var ORIGENS = ORIGENS_ENV;
-var TETO_DOCS_DIA = TETO_ENV;
-var ajustesEm = 0;
-var sb = criarCliente(SUPABASE_URL, SERVICE_KEY);
-var TTL_AJUSTES_MS = 6e4;
+var oab_api_exports = {};
+__export(oab_api_exports, {
+  atender: () => atender
+});
 async function carregarAjustes(agora = Date.now()) {
   if (agora - ajustesEm < TTL_AJUSTES_MS) return;
   ajustesEm = agora;
@@ -962,21 +1034,61 @@ async function atender(req) {
     return json({ erro: "erro interno" }, 500, origem);
   }
 }
-if (typeof Deno !== "undefined" && typeof Deno.serve === "function") Deno.serve(atender);
+var SUPABASE_URL, SERVICE_KEY, CHAVES_ENV, ORIGENS_ENV, TETO_ENV, CHAVES, ORIGENS, TETO_DOCS_DIA, ajustesEm, sb, TTL_AJUSTES_MS;
+var init_oab_api = __esm({
+  "supabase/functions/oab-api/index.ts"() {
+    "use strict";
+    init_postgrest();
+    init_planejar();
+    init_catalogo();
+    init_contrato();
+    init_auth();
+    SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    CHAVES_ENV = lerChaves(Deno.env.get("OAB_API_CHAVES"));
+    ORIGENS_ENV = (Deno.env.get("OAB_API_ORIGENS") ?? "https://www.oabes.org.br,https://oabes.org.br").split(",").map((s) => s.trim()).filter(Boolean);
+    TETO_ENV = Number(Deno.env.get("OAB_API_TETO_DOCS_DIA") ?? "0");
+    CHAVES = CHAVES_ENV;
+    ORIGENS = ORIGENS_ENV;
+    TETO_DOCS_DIA = TETO_ENV;
+    ajustesEm = 0;
+    sb = criarCliente(SUPABASE_URL, SERVICE_KEY);
+    TTL_AJUSTES_MS = 6e4;
+    if (typeof Deno !== "undefined" && typeof Deno.serve === "function") Deno.serve(atender);
+  }
+});
+
+// ../../../tmp/claude-0/-home-user/0eeb1014-9b44-5c85-8381-7f498463bf52/scratchpad/shim-deno.mjs
+if (typeof globalThis.Deno === "undefined") {
+  globalThis.Deno = { env: { get: (nome) => process.env[nome] } };
+}
 
 // ../../../tmp/claude-0/-home-user/0eeb1014-9b44-5c85-8381-7f498463bf52/scratchpad/relay-entry.ts
+var relay = null;
+async function carregar() {
+  relay ??= await Promise.resolve().then(() => (init_oab_api(), oab_api_exports));
+  return relay;
+}
 async function handler(req, res) {
-  const url = new URL(req.url, `https://${req.headers.host ?? "localhost"}`);
-  const corpo = req.method === "POST" ? await lerCorpo(req) : void 0;
-  const pedido = new Request(url, {
-    method: req.method,
-    headers: new Headers(req.headers),
-    body: corpo
-  });
-  const resposta = await atender(pedido);
-  res.status(resposta.status);
-  resposta.headers.forEach((v, k) => res.setHeader(k, v));
-  res.send(await resposta.text());
+  try {
+    const { atender: atender2 } = await carregar();
+    const url = new URL(req.url, `https://${req.headers.host ?? "localhost"}`);
+    const corpo = req.method === "POST" ? await lerCorpo(req) : void 0;
+    const pedido = new Request(url, {
+      method: req.method,
+      headers: new Headers(req.headers),
+      body: corpo
+    });
+    const resposta = await atender2(pedido);
+    res.status(resposta.status);
+    resposta.headers.forEach((v, k) => res.setHeader(k, v));
+    res.send(await resposta.text());
+  } catch (e) {
+    res.status(500).setHeader("content-type", "application/json; charset=utf-8").send(JSON.stringify({
+      erro: "falha ao iniciar o relay",
+      detalhe: String(e?.stack ?? e).slice(0, 900)
+    }));
+  }
 }
 function lerCorpo(req) {
   if (typeof req.body === "string") return Promise.resolve(req.body);
