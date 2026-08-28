@@ -9,8 +9,21 @@
 // Trocar DEMO por real é trocar BASE — nada mais neste arquivo muda.
 // ============================================================================
 
-/** Rota do BFF da OAB. No site real, aponta para onde o PHP for publicado. */
-const BASE = "bff/jurisprudencia.php";
+/**
+ * Onde o BFF está publicado.
+ *
+ * O padrão é relativo à página, que funciona quando os dois ficam lado a lado.
+ * No portal da OAB dificilmente ficam: a página vai numa rota (`/jurisprudencia/`)
+ * e o PHP em outra. Para apontar sem mexer em JavaScript, ponha no HTML:
+ *
+ *     <meta name="oabjus-bff" content="/servicos/jurisprudencia-bff.php">
+ *
+ * Aceita caminho absoluto do site ou URL inteira. Um caminho relativo com a
+ * página numa subpasta é o erro clássico: `/jurisprudencia/bff/...` não existe,
+ * e a página responde 404 em tudo sem dizer por quê.
+ */
+const BASE = document.querySelector('meta[name="oabjus-bff"]')?.content?.trim()
+  || "bff/jurisprudencia.php";
 
 /**
  * A página fala com o backend por padrão. `?demo=1` força os dados fictícios,

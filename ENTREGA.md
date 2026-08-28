@@ -15,9 +15,9 @@ de acesso.** Ela é entregue à parte, por canal fechado.
 python3 -m http.server 8000
 ```
 
-Abra `http://localhost:8000`. Sem BFF configurado, use `?demo=1`: a página sobe com
-acórdãos fictícios, e dá para clicar em tudo: buscar, filtrar por câmara,
-assunto e comarca, abrir o inteiro teor, paginar.
+Abra `http://localhost:8000`. Sem BFF configurado, use `?demo=1`: a página sobe
+com acórdãos fictícios, e dá para clicar em tudo — buscar, filtrar por câmara,
+assunto e comarca, paginar, abrir a página de um acórdão.
 
 Serve para avaliar a interface antes de qualquer configuração.
 
@@ -32,11 +32,19 @@ Três passos, todos do lado da OAB.
 Copie para o servidor:
 
 ```
-index.html
+index.html      a busca
+acordao.html    a página de um acórdão
 assets/
 public/
 bff/
 ```
+
+**Não copie** `api/`, `vercel.json` nem `.vercelignore`. Eles existem só para
+publicar o protótipo na Vercel; no portal da OAB quem faz esse papel é
+`bff/jurisprudencia.php`. Ver a seção 2.5.
+
+As duas páginas ficam **na mesma pasta**: a busca linka `acordao.html?id=…`
+por caminho relativo.
 
 ### 2.2 Configurar a chave no BFF
 
@@ -56,10 +64,52 @@ Confirme que `/bff/jurisprudencia.php` é **executado**, e não servido como
 texto: um `.php` entregue como arquivo mostra o código-fonte, e o código lê o
 segredo.
 
-### 2.3 Ligar o modo real
+### 2.3 Dizer à página onde o BFF está
 
-Em `assets/js/api.js`, mude a constante `DEMO` para sempre falso, ou acesse a
-página normalmente para testar; `?demo=1` volta para os dados fictícios.
+Por padrão a página procura o BFF em `bff/jurisprudencia.php`, **relativo à
+página**. Isso funciona com os dois lado a lado. Se a busca for para uma rota
+do portal (`/jurisprudencia/`, por exemplo) e o PHP para outra, o caminho
+relativo aponta para um lugar que não existe e a página responde 404 em tudo
+sem dizer por quê.
+
+Para apontar sem mexer em JavaScript, descomente a linha no `<head>` das
+**duas** páginas:
+
+```html
+<meta name="oabjus-bff" content="/servicos/jurisprudencia-bff.php">
+```
+
+Aceita caminho absoluto do site ou URL inteira.
+
+### 2.4 Conferir
+
+A página já sobe falando com o acervo; `?demo=1` volta para os dados fictícios
+se quiserem ver a interface sem tocar no serviço. Um teste rápido pelo próprio
+servidor de vocês:
+
+```
+curl "https://<portal>/bff/jurisprudencia.php?rota=vocabulario&recurso=habeas_corpus"
+```
+
+Deve voltar JSON com câmaras, assuntos e comarcas. Se voltar `503`, faltam as
+variáveis; se voltar o código-fonte em PHP, o arquivo não está sendo executado.
+
+### 2.5 O que NÃO vem para vocês
+
+O repositório traz uma pasta `api/` com um relay em Node e um `vercel.json`.
+**Isso não é para o portal da OAB.** É o protótipo publicado num host de
+funções, e o relay ali usa uma credencial de banco do JurimetriaES que não
+acompanha a entrega — nem deve.
+
+A divisão é esta, e é ela que faz a segurança valer:
+
+| fica com a OAB | fica com o JurimetriaES |
+|---|---|
+| a página e o BFF | a API, o banco e o motor de busca |
+| a **chave** (identificador + segredo do HMAC) | a credencial do banco |
+
+A OAB assina as chamadas; quem lê o acervo é o JurimetriaES. Se a chave da OAB
+vazar, ela é revogada de um lado só e nada mais precisa mudar.
 
 ---
 
@@ -87,18 +137,28 @@ nenhuma além do que vem com o PHP (`hash_hmac` e cURL).
 ## 4. O que a API entrega
 
 Por acórdão: **número do processo, data de julgamento, magistrado, câmara,
-assunto, resultado e a ementa inteira**. O **inteiro teor** vem no endpoint de
-detalhe, um acórdão por requisição.
+assunto, resultado e o inteiro teor** — o texto do tribunal, verbatim, já na
+listagem. Abrir o acórdão não custa uma segunda requisição.
 
-Verificado contra o acervo em produção: as ementas que a API devolve são
-**byte a byte** as mesmas que o JurimetriaES exibe, e na mesma ordem. Foram
-comparados 30 acórdãos em 3 consultas distintas, item a item.
+Vem também **quantos acórdãos a pesquisa achou** e **em quantas páginas eles
+cabem**, para a paginação poder dizer "página 3 de 7".
+
+O assunto é o **canônico**: é o mesmo valor que o filtro oferece e o mesmo que
+o JurimetriaES mostra. O campo cru do tribunal mistura nível (traz "Estelionato
+contra Idoso" ao lado de "Estelionato") e carrega entulho processual
+("Contagem - Dias Úteis"); medido em habeas corpus, 267 valores crus contra 94
+canônicos.
 
 ### Não são devolvidos
 
 Dados de jurimetria, perfil decisório, teses, classificações, resumos gerados
-por IA, contagens, estatísticas agregadas ou totais. Não estão no contrato: a
-API não tem como devolvê-los.
+por IA, nem as facetas do motor — entre elas o total por magistrado e por tese.
+Não estão no contrato: a API não tem como devolvê-los.
+
+Também não vem a **ementa** que o JurimetriaES exibe. Em 93% do acervo ela não
+é a ementa do tribunal, e sim um documento montado que abre em "IDENTIFICAÇÃO"
+e fecha em "JURISPRUDÊNCIA CITADA" — resumo do inteiro teor, que o contrato
+veta. O que a API entrega é o texto do tribunal.
 
 ### Limites
 
@@ -106,8 +166,8 @@ API não tem como devolvê-los.
   filtros.
 - **Tipo de recurso é obrigatório.** Uma pesquisa não cruza recursos.
 - Assunto, comarca, câmara e magistrado aceitam **um valor cada**.
-- Não há filtro por período na busca. A lista de "últimas dos 7 dias" usa uma
-  janela fixada pelo servidor.
+- Não há filtro por período na busca. A lista de "últimos acórdãos" usa uma
+  janela de 7 dias fixada pelo servidor.
 
 ---
 
@@ -118,7 +178,7 @@ Todos exigem a assinatura. O BFF cuida disso.
 | método | rota | devolve |
 |---|---|---|
 | `POST` | `/busca` | resultados da pesquisa |
-| `GET` | `/recentes/{recurso}` | as últimas dos 7 dias |
+| `GET` | `/recentes/{recurso}` | os últimos acórdãos (7 dias) |
 | `GET` | `/acordao/{id}` | um acórdão, com inteiro teor |
 | `GET` | `/vocabulario?recurso={recurso}` | valores aceitos pelos filtros |
 
@@ -127,10 +187,13 @@ Todos exigem a assinatura. O BFF cuida disso.
 ## 6. Onde mexer
 
 ```
-index.html                       a página inteira
+index.html                       a busca: cabeçalho, filtros, resultados
+acordao.html                     a página de um acórdão
 assets/css/jurisprudencia.css    só os deltas em cima do Bootstrap
 assets/js/api.js                 cliente da API + dados de demonstração
-assets/js/jurisprudencia.js      a tela: cartões, erros, paginação
+assets/js/jurisprudencia.js      a busca: cartões, erros, paginação
+assets/js/acordao.js             a página do acórdão
+assets/js/formato.js             texto, datas e grifo — usado pelas duas telas
 assets/vendor/bootstrap.min.css  Bootstrap 5.3.3 vendorizado
 bff/jurisprudencia.php           assina com HMAC e repassa
 public/logos/                    JUES e OAB
@@ -140,13 +203,21 @@ public/logos/                    JUES e OAB
 |---|---|
 | cor, espaçamento, tamanho | `assets/css/jurisprudencia.css` — variáveis no topo |
 | texto de rótulo ou aviso | `index.html` e `assets/js/jurisprudencia.js` |
-| endereço do BFF | constante `BASE`, topo de `assets/js/api.js` |
+| endereço do BFF | a `<meta name="oabjus-bff">` no `<head>` das duas páginas |
 | o que aparece no cartão | função `cartao()` em `assets/js/jurisprudencia.js` |
+| a página do acórdão | `acordao.html` e `assets/js/acordao.js` |
 
-**Ao embutir no template do portal:** remova a linha
-`<link rel="stylesheet" href="assets/vendor/bootstrap.min.css">`. O portal já
-carrega Bootstrap 5.3.3, e duas cópias brigam entre si. Mantenha
-`assets/css/jurisprudencia.css`.
+**Ao embutir no template do portal**, nas duas páginas:
+
+- remova `<link rel="stylesheet" href="assets/vendor/bootstrap.min.css">` — o
+  portal já carrega Bootstrap 5.3.3, e duas cópias brigam entre si. Mantenha
+  `assets/css/jurisprudencia.css`, que só traz o que o Bootstrap não dá;
+- Font Awesome e as fontes Montserrat/Roboto o portal já carrega;
+- os arquivos de `assets/` e `public/` são referenciados por **caminho
+  relativo**. Se as páginas forem para uma subpasta, ou os arquivos mudam de
+  lugar junto, ou os caminhos viram absolutos;
+- o JavaScript é **módulo ES** (`<script type="module">`). Se o portal tiver
+  CSP, `script-src` precisa admitir os arquivos de `assets/js/`.
 
 ---
 

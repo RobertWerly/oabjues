@@ -85,10 +85,13 @@ o conteúdo dentro do template de vocês:
 ## Onde mexer
 
 ```
-index.html                       a página inteira: cabeçalho, filtros, resultados
-assets/css/jurisprudencia.css    só os deltas em cima do Bootstrap (~130 linhas)
+index.html                       a busca: cabeçalho, filtros, resultados
+acordao.html                     a página de um acórdão
+assets/css/jurisprudencia.css    só os deltas em cima do Bootstrap
 assets/js/api.js                 cliente da API + os dados de demonstração
-assets/js/jurisprudencia.js      a tela: monta cartões, trata erros, pagina
+assets/js/jurisprudencia.js      a busca: monta cartões, trata erros, pagina
+assets/js/acordao.js             a página do acórdão
+assets/js/formato.js             texto, datas e grifo — usado pelas duas telas
 assets/vendor/bootstrap.min.css  Bootstrap 5.3.3 vendorizado
 bff/jurisprudencia.php           assina com HMAC e repassa  (servidor PHP)
 api/jurisprudencia.mjs           o mesmo BFF, em Node        (Vercel)
@@ -130,7 +133,7 @@ Para voltar ao Supabase: aponte `OABJUS_URL` para
 |---|---|
 | trocar cor, espaçamento, tamanho | `assets/css/jurisprudencia.css` — as cores são variáveis no topo |
 | mudar texto de rótulo ou aviso | `index.html` (formulário) e `assets/js/jurisprudencia.js` (mensagens) |
-| mudar o endereço do BFF | a constante `BASE`, no topo de `assets/js/api.js` |
+| mudar o endereço do BFF | a `<meta name="oabjus-bff">` no `<head>` das duas páginas |
 | mudar o que aparece no cartão | a função `cartao()` em `assets/js/jurisprudencia.js` |
 | trocar os dados de demonstração | `DEMO_ITENS` no fim de `assets/js/api.js` |
 | forçar os dados de demonstração | abra com `?demo=1`, ou mexa na constante `DEMO` em `assets/js/api.js` |
