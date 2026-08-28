@@ -1,26 +1,4 @@
 <?php
-/**
- * BFF de jurisprudência — a metade da integração que roda no servidor da OAB.
- *
- * O navegador não pode falar com a API do JurimetriaES: a autenticação é HMAC
- * e a chave é secreta. `Origin` e `Referer` não servem de credencial — são
- * cabeçalhos que um `curl` escolhe. Então o caminho é este arquivo: o
- * navegador chama aqui, aqui assina, e só aqui a chave existe.
- *
- * PHP porque é o que o portal da OAB-ES já roda. Sem dependência externa:
- * hash_hmac e cURL vêm com o PHP.
- *
- * INSTALAÇÃO
- *   1. Publique este arquivo em /bff/jurisprudencia.php
- *   2. Defina as variáveis de ambiente (nunca no código, nunca no Git):
- *        OABJUS_URL     https://<projeto>.supabase.co/functions/v1/oab-api
- *        OABJUS_CHAVE   o identificador da chave
- *        OABJUS_SEGREDO o segredo correspondente
- *   3. Confirme que o arquivo NÃO é servido como texto (php -v no servidor).
- *
- * O que este arquivo deliberadamente NÃO faz: interpretar a resposta. Ele
- * repassa o JSON como veio. Quem decide o que sai é a API, do outro lado.
- */
 
 declare(strict_types=1);
 
