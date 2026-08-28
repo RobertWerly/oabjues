@@ -190,10 +190,10 @@ function estadoVazio({ inicial }) {
   lista.dataset.estado = inicial ? "inicial" : "vazio";
   lista.innerHTML = `
     <div class="estado" data-papel="${inicial ? "inicial" : "vazio"}">
-      <div class="icone"><i class="fas fa-search"></i></div>
+      <div class="icone"><i class="fas ${inicial ? "fa-search" : "fa-folder-open"}"></i></div>
       <h2>${inicial
         ? "Pesquise a jurisprudência criminal do TJES"
-        : "Nenhuma decisão encontrada com esses filtros"}</h2>
+        : "Nada encontrado para esta pesquisa"}</h2>
       <p>${inicial
         ? "Digite um termo, o número de um processo, ou use os filtros acima. Comece por um destes:"
         : "Tente menos filtros, outro tipo de recurso, ou uma destas buscas:"}</p>
@@ -232,9 +232,10 @@ async function carregarRecentes(n = 1) {
       // um mês atrás, e a janela vem vazia. Dizer isso é melhor que uma seção
       // com título e nada embaixo.
       alvo.innerHTML = `${cabecalho}
-        <div class="painel p-4 text-center" data-papel="recentes-vazio">
-          <p class="mb-0" style="font-size:.92rem;color:var(--oab-texto-2)">
-            Nenhum acórdão de <strong>${esc(rotulo)}</strong> julgado
+        <div class="estado estado-compacto" data-papel="recentes-vazio">
+          <div class="icone"><i class="far fa-calendar-times"></i></div>
+          <h2>Nada encontrado nos últimos ${r.dias ?? 7} dias</h2>
+          <p>Nenhum acórdão de <strong>${esc(rotulo)}</strong> foi julgado
             ${r.desde ? `desde ${dataCurta(r.desde)}` : "no período"}.
             Use a busca acima para consultar o acervo inteiro.</p>
         </div>`;

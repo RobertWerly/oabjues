@@ -170,6 +170,14 @@ mark{background:var(--oab-grifo);color:inherit;padding:0 .15em;border-radius:2px
 .estado .icone{color:var(--oab-azul);opacity:.35;font-size:2.25rem;margin-bottom:.75rem}
 .estado h2{font-size:1.15rem;font-weight:700;color:var(--oab-texto);margin:0 0 .4rem}
 .estado p{font-size:.92rem;color:var(--oab-texto-2);max-width:34rem;margin:0 auto 1.25rem}
+/* O "nada encontrado" da lista dos últimos acórdãos: mesmo desenho do estado
+   vazio da busca, mas com menos ar — ele fica DENTRO de uma seção que já tem
+   título, e não sozinho na página. */
+.estado.estado-compacto{padding:1.75rem 1.25rem}
+.estado.estado-compacto .icone{font-size:1.75rem;margin-bottom:.5rem}
+.estado.estado-compacto h2{font-size:1rem}
+.estado.estado-compacto p{margin-bottom:0}
+
 .exemplos{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
 .exemplos button{
   background:var(--oab-superficie-2);border:1px solid var(--oab-borda);
