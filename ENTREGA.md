@@ -15,7 +15,7 @@ de acesso.** Ela é entregue à parte, por canal fechado.
 python3 -m http.server 8000
 ```
 
-Abra `http://localhost:8000`. A página sobe em **modo demonstração**, com
+Abra `http://localhost:8000`. Sem BFF configurado, use `?demo=1`: a página sobe com
 acórdãos fictícios, e dá para clicar em tudo: buscar, filtrar por câmara,
 assunto e comarca, abrir o inteiro teor, paginar.
 
@@ -59,7 +59,7 @@ segredo.
 ### 2.3 Ligar o modo real
 
 Em `assets/js/api.js`, mude a constante `DEMO` para sempre falso, ou acesse a
-página com `?demo=0` para testar antes.
+página normalmente para testar; `?demo=1` volta para os dados fictícios.
 
 ---
 

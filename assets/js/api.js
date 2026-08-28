@@ -12,8 +12,16 @@
 /** Rota do BFF da OAB. No site real, aponta para onde o PHP for publicado. */
 const BASE = "bff/jurisprudencia.php";
 
-/** Sem backend publicado, a página roda com dados de demonstração. */
-export const DEMO = new URLSearchParams(location.search).get("demo") !== "0";
+/**
+ * A página fala com o backend por padrão. `?demo=1` força os dados fictícios,
+ * para ver a tela sem BFF publicado.
+ *
+ * Era o contrário enquanto a chave não existia: o padrão era demonstração e
+ * `?demo=0` ligava o serviço. Com o BFF no ar, o padrão certo é o real —
+ * senão o site publicado mostra acórdão inventado para quem não souber do
+ * parâmetro.
+ */
+export const DEMO = new URLSearchParams(location.search).get("demo") === "1";
 
 export const RECURSOS = [
   ["habeas_corpus", "Habeas Corpus"],
@@ -35,10 +43,20 @@ export class ErroApi extends Error {
   }
 }
 
-async function chamar(rota, opcoes = {}) {
+/**
+ * `rota` é a rota canônica — o que o BFF assina. `params` são os extras, que
+ * viajam como parâmetros de verdade.
+ *
+ * Os dois foram separados porque juntá-los estava quebrado: `vocabulario&recurso=x`
+ * ia inteiro dentro de `?rota=`, chegava ao BFF como uma rota só e caía na
+ * allowlist dele. Só `busca` funcionava; vocabulário e recentes davam 400.
+ */
+async function chamar(rota, params = {}, opcoes = {}) {
+  const q = Object.entries(params)
+    .map(([k, v]) => `&${k}=${encodeURIComponent(v)}`).join("");
   let r;
   try {
-    r = await fetch(`${BASE}?rota=${encodeURIComponent(rota)}`, opcoes);
+    r = await fetch(`${BASE}?rota=${encodeURIComponent(rota)}${q}`, opcoes);
   } catch {
     throw new ErroApi("não foi possível falar com o servidor", 0);
   }
@@ -52,7 +70,7 @@ async function chamar(rota, opcoes = {}) {
 
 export async function buscar(pedido) {
   if (DEMO) return demoBuscar(pedido);
-  return chamar("busca", {
+  return chamar("busca", {}, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(pedido),
@@ -66,14 +84,17 @@ export async function acordao(id) {
 
 export async function vocabulario(recurso) {
   if (DEMO) return demoVocabulario();
-  return chamar(`vocabulario&recurso=${encodeURIComponent(recurso)}`);
+  return chamar("vocabulario", { recurso });
 }
 
 /** As últimas jurisprudências da janela que o SERVIDOR define — a página não
  *  pede intervalo, e não tem como pedir: não há chave de data no contrato. */
 export async function recentes(recurso, pagina = 1) {
   if (DEMO) return demoRecentes(recurso, pagina);
-  return chamar(`recentes/${encodeURIComponent(recurso)}&pagina=${pagina}`);
+  // O recurso vai no CAMINHO porque a assinatura cobre a rota e não a query:
+  // trocá-lo em trânsito serviria outra lista e gravaria o recurso errado no
+  // log, que é a única trilha de auditoria que existe.
+  return chamar(`recentes/${encodeURIComponent(recurso)}`, { pagina });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

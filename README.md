@@ -13,8 +13,9 @@ de compilação.** Copiou os arquivos para o servidor, está no ar.
 
 ## Ver funcionando agora
 
-Abra `index.html` no navegador. Ela sobe em **modo demonstração**, com acórdãos
-fictícios, e dá para clicar em tudo — buscar, filtrar, paginar, abrir inteiro
+Com o BFF publicado e configurado, a página já sobe **falando com o acervo de
+verdade**. Sem BFF, abra com `?demo=1` para ver a interface com acórdãos
+fictícios — dá para clicar em tudo: buscar, filtrar, paginar, abrir inteiro
 teor.
 
 Precisa de um servidor local (o navegador bloqueia módulos em `file://`):
@@ -23,8 +24,6 @@ Precisa de um servidor local (o navegador bloqueia módulos em `file://`):
 python3 -m http.server 8000
 # depois abra http://localhost:8000
 ```
-
-Para falar com a API de verdade: publique o BFF (abaixo) e abra com `?demo=0`.
 
 ---
 
@@ -68,8 +67,8 @@ nenhuma além do que vem com o PHP (`hash_hmac` e cURL).
    texto. Um `.php` entregue como arquivo mostra o código-fonte — e o código lê
    o segredo.
 
-5. Abra a página sem `?demo=0` na URL para conferir a interface, e com `?demo=0`
-   para bater na API.
+5. Abra a página. Ela já bate na API; `?demo=1` volta para os dados fictícios,
+   se quiser conferir a interface sem tocar no acervo.
 
 ### Embutir no template da OAB
 
@@ -91,9 +90,16 @@ assets/css/jurisprudencia.css    só os deltas em cima do Bootstrap (~130 linhas
 assets/js/api.js                 cliente da API + os dados de demonstração
 assets/js/jurisprudencia.js      a tela: monta cartões, trata erros, pagina
 assets/vendor/bootstrap.min.css  Bootstrap 5.3.3 vendorizado
-bff/jurisprudencia.php           assina com HMAC e repassa
+bff/jurisprudencia.php           assina com HMAC e repassa  (servidor PHP)
+api/jurisprudencia.mjs           o mesmo BFF, em Node        (Vercel)
+vercel.json                      manda /bff/jurisprudencia.php para a função Node
 public/logos/                    JUES e OAB, com fundo recortado
 ```
+
+Os dois BFFs fazem a mesma coisa e existem para hosts diferentes. O portal da
+OAB-ES roda PHP: use `bff/jurisprudencia.php` e apague `api/`, `vercel.json` e
+`.vercelignore`. Para publicar na Vercel é o contrário — o `vercel.json`
+reescreve o caminho, então a página não precisa saber qual dos dois está no ar.
 
 | se você quiser… | mexa em |
 |---|---|
@@ -102,7 +108,7 @@ public/logos/                    JUES e OAB, com fundo recortado
 | mudar o endereço do BFF | a constante `BASE`, no topo de `assets/js/api.js` |
 | mudar o que aparece no cartão | a função `cartao()` em `assets/js/jurisprudencia.js` |
 | trocar os dados de demonstração | `DEMO_ITENS` no fim de `assets/js/api.js` |
-| desligar o modo demonstração por padrão | a constante `DEMO`, em `assets/js/api.js` |
+| forçar os dados de demonstração | abra com `?demo=1`, ou mexa na constante `DEMO` em `assets/js/api.js` |
 
 As cores vêm do CSS de produção da própria OAB-ES: `#274364` é o navy do portal
 (o `--bs-dark` deles, e a cor do botão primário) e `#d02015` é o vermelho
@@ -113,12 +119,16 @@ institucional.
 ## O que a API devolve
 
 Por acórdão: **número do processo, data de julgamento, magistrado, câmara,
-assunto, resultado e a ementa inteira**. O **inteiro teor** vem no endpoint de
-detalhe, um acórdão por requisição.
+assunto, resultado e o inteiro teor**, verbatim do tribunal, já na listagem —
+abrir o texto não custa uma segunda requisição.
 
-Não são devolvidos, e não existem no contrato: dados de jurimetria, perfil
-decisório, teses, classificações, resumos gerados por IA, nem qualquer contagem
-ou estatística agregada.
+Não vem a ementa que o aplicativo mostra: em 93% do acervo ela não é a ementa
+do tribunal, e sim um documento montado que abre em "IDENTIFICAÇÃO" e fecha em
+"JURISPRUDÊNCIA CITADA". Isso é resumo do inteiro teor, que o contrato veta.
+
+Também não são devolvidos, e não existem no contrato: dados de jurimetria,
+perfil decisório, teses, classificações, resumos gerados por IA, nem qualquer
+contagem ou estatística agregada.
 
 ### Limites
 

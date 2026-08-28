@@ -46,7 +46,7 @@ if ($base === '' || $chave === '' || $segredo === '') {
 $rota = (string) ($_GET['rota'] ?? '');
 // Allowlist de rota: o parâmetro vem do navegador e não pode virar caminho
 // arbitrário no host de destino.
-if (!preg_match('#^(busca|vocabulario|acordao/[0-9a-fA-F-]{36})$#', $rota)) {
+if (!preg_match('#^(busca|vocabulario|recentes/[a-z_]{3,40}|acordao/[0-9a-fA-F-]{36})$#', $rota)) {
     responder(400, ['erro' => 'rota inválida']);
 }
 
@@ -72,11 +72,16 @@ if ($metodo === 'POST') {
 // A rota canônica é só o que vem depois de oab-api, com barra na frente.
 $caminho = '/' . $rota;
 
+// A query NÃO entra na assinatura — por isso cada parâmetro que atravessa é
+// higienizado aqui, um a um, e nenhum outro passa.
 $destino = rtrim($base, '/') . '/' . $rota;
 if ($rota === 'vocabulario' && isset($_GET['recurso'])) {
     // Só o nome do recurso atravessa, e só se parecer com um.
     $recurso = preg_replace('/[^a-z_]/', '', (string) $_GET['recurso']);
     $destino .= '?recurso=' . rawurlencode($recurso);
+} elseif (str_starts_with($rota, 'recentes/') && isset($_GET['pagina'])) {
+    $pagina = max(1, min(10, (int) $_GET['pagina']));
+    $destino .= '?pagina=' . $pagina;
 }
 
 $ts    = (string) (int) (microtime(true) * 1000);
