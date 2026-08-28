@@ -47,8 +47,25 @@ async function lerCorpo(req) {
   return Buffer.concat(pedacos).toString("utf8");
 }
 
+/**
+ * Para onde o BFF assina.
+ *
+ * `OABJUS_URL` manda, sempre. Sem ela, e estando na Vercel, cai no relay do
+ * próprio projeto (`/api/oab-api`) — é o que faz o protótipo funcionar sem
+ * ninguém precisar decorar a URL da edge function. No servidor da OAB, onde
+ * não existe relay local, a variável é obrigatória e a ausência dela vira 503.
+ */
+function destinoBase(req) {
+  const explicito = process.env.OABJUS_URL?.trim();
+  if (explicito) return explicito;
+  if (process.env.VERCEL && req.headers.host) {
+    return `https://${req.headers.host}/api/oab-api`;
+  }
+  return "";
+}
+
 export default async function handler(req, res) {
-  const base = process.env.OABJUS_URL ?? "";
+  const base = destinoBase(req);
   const chave = process.env.OABJUS_CHAVE ?? "";
   const segredo = process.env.OABJUS_SEGREDO ?? "";
   if (!base || !chave || !segredo) {
