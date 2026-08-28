@@ -13,7 +13,7 @@
 //   sem total a API não devolve contagem. O fim da lista é `tem_mais: false`,
 //             nunca um zero que se confunde com "nada encontrado".
 // ============================================================================
-import { buscar, acordao, vocabulario, recentes, RECURSOS, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
+import { buscar, vocabulario, recentes, RECURSOS, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
 
 const $ = (id) => document.getElementById(id);
@@ -46,6 +46,33 @@ function grifar(txt, radicais) {
     .sort((a, b) => b.length - a.length);
   if (!alt.length) return seguro;
   return seguro.replace(new RegExp(`(${alt.join("|")})\\p{L}*`, "giu"), "<mark>$&</mark>");
+}
+
+/**
+ * O inteiro teor vem do tribunal como texto extraído de PDF: dezenas de linhas
+ * em branco, cabeçalho de brasão, quebras no meio de frase. A API entrega
+ * verbatim — mexer no texto é dela para fora, não dela para dentro. Quem
+ * arruma para LER é a página, e só o espaço em branco.
+ */
+function limparEspacos(txt) {
+  return String(txt ?? "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * O trecho do card. O acórdão abre com "ESTADO DO ESPÍRITO SANTO / PODER
+ * JUDICIÁRIO / PROCESSO Nº …" — duas linhas de brasão que não dizem nada sobre
+ * o caso. Quando o texto traz "EMENTA", o trecho começa ali; é onde o tribunal
+ * resume o julgado. O texto inteiro continua íntegro no botão.
+ */
+function trecho(txt) {
+  const limpo = limparEspacos(txt);
+  const m = /\bEMENTA\b/i.exec(limpo);
+  return m && m.index < limpo.length * 0.6 ? limpo.slice(m.index) : limpo;
 }
 
 const FMT = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
@@ -118,9 +145,9 @@ function cartao(item, radicais, rotuloRecurso) {
         <div class="mb-2"><span class="rotulo-campo">Assunto:</span>
           <span class="valor-assunto ms-1">${esc(item.assunto ?? "—")}</span></div>
 
-        <div class="bloco-ementa mb-2">
-          <span class="titulo">Trecho da ementa</span>
-          <p class="cortada">${grifar(item.ementa ?? "", radicais)}</p>
+        <div class="bloco-teor mb-2">
+          <span class="titulo">Trecho do acórdão</span>
+          <p class="cortada">${grifar(trecho(item.inteiro_teor), radicais)}</p>
         </div>
 
         <div style="font-size:.85rem">
@@ -155,35 +182,31 @@ function cartao(item, radicais, rotuloRecurso) {
     } catch { /* sem permissão de área de transferência */ }
   });
 
+  // O texto JÁ VEIO na listagem — a API devolve inteiro teor em cada item.
+  // Abrir não custa requisição, não custa espera e não conta contra o teto
+  // diário de documentos. O endpoint de detalhe continua existindo no contrato
+  // (e em api.js), para quem integrar de outro jeito.
   const bTeor = el.querySelector('[data-acao="teor"]');
-  bTeor.addEventListener("click", async () => {
+  bTeor.addEventListener("click", () => {
     const aberto = el.querySelector(".teor");
     if (aberto) {
       aberto.remove();
       bTeor.innerHTML = '<i class="fas fa-book-open me-1"></i> Inteiro teor';
       return;
     }
-    bTeor.disabled = true;
-    bTeor.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Carregando';
-    try {
-      // Um acórdão por requisição — é assim que a API entrega o inteiro teor.
-      const d = await acordao(item.id);
-      const div = document.createElement("div");
+    const div = document.createElement("div");
+    const texto = limparEspacos(item.inteiro_teor);
+    if (texto) {
       div.className = "teor mt-3";
-      div.innerHTML = grifar(d.inteiro_teor ?? "(sem inteiro teor)", radicais);
-      el.appendChild(div);
+      div.innerHTML = grifar(texto, radicais);
       bTeor.innerHTML = '<i class="fas fa-compress-alt me-1"></i> Recolher';
-    } catch (e) {
-      const div = document.createElement("div");
+    } else {
+      // 24 dos 21.493 acórdãos entregáveis não têm o teor guardado. Eles
+      // aparecem na lista normalmente; só não abrem.
       div.className = "aviso-motor mt-3";
-      div.textContent = e instanceof ErroApi && e.status === 404
-        ? "Este acórdão não está disponível para consulta."
-        : "Não foi possível carregar o inteiro teor.";
-      el.appendChild(div);
-      bTeor.innerHTML = '<i class="fas fa-book-open me-1"></i> Inteiro teor';
-    } finally {
-      bTeor.disabled = false;
+      div.textContent = "O inteiro teor deste acórdão não está disponível no acervo.";
     }
+    el.appendChild(div);
   });
 
   return el;

@@ -106,17 +106,19 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
 .valor-recurso{font-weight:900;text-transform:uppercase;letter-spacing:.04em;color:var(--oab-azul);font-size:.85rem}
 .valor-assunto{font-weight:700;color:var(--oab-texto)}
 
-.bloco-ementa{
+.bloco-teor{
   background:var(--oab-superficie-2);border:1px solid var(--oab-borda);
   border-radius:.5rem;padding:.75rem;font-size:.9rem;line-height:1.6;color:var(--oab-texto-2);
 }
-.bloco-ementa .titulo{
+.bloco-teor .titulo{
   font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
   color:var(--oab-azul);display:block;margin-bottom:.25rem;
 }
-.bloco-ementa p{margin:0;font-style:italic;white-space:pre-wrap}
-.bloco-ementa p.cortada{
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+.bloco-teor p{margin:0;white-space:pre-wrap}
+/* 3 linhas: o trecho é acórdão, não ementa curta — em 2 linhas mal sai do
+   cabeçalho da classe processual. O texto inteiro abre no botão. */
+.bloco-teor p.cortada{
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
 mark{background:var(--oab-grifo);color:inherit;padding:0 .15em;border-radius:2px;font-weight:600}
 

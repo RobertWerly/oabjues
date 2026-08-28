@@ -96,7 +96,9 @@ const DEMO_ITENS = [
     camara: "1ª Câmara Criminal",
     assunto: "Habeas Corpus - Cabimento",
     resultado: "Concedida",
-    ementa:
+    inteiro_teor:
+      "ESTADO DO ESPÍRITO SANTO\nPODER JUDICIÁRIO\n\n\n\nTRIBUNAL DE JUSTIÇA\n" +
+      "PROCESSO Nº 5000000-11.2025.8.08.0000\n\n\n" +
       "EMENTA FICTÍCIA — HABEAS CORPUS. TRÁFICO DE DROGAS. BUSCA DOMICILIAR SEM " +
       "MANDADO. AUSÊNCIA DE FUNDADAS RAZÕES ANTERIORES AO INGRESSO. NULIDADE DA " +
       "DILIGÊNCIA E DAS PROVAS DELA DERIVADAS. ORDEM CONCEDIDA.\n\n" +
@@ -106,7 +108,13 @@ const DEMO_ITENS = [
       "2. Não comprovada a existência de fundadas razões prévias, impõe-se o " +
       "reconhecimento da nulidade da busca domiciliar e o desentranhamento das " +
       "provas dela decorrentes.\n" +
-      "3. Ordem concedida para trancar a ação penal.",
+      "3. Ordem concedida para trancar a ação penal.\n\n" +
+      "RELATÓRIO\n\nTrata-se de habeas corpus impetrado em favor do paciente, " +
+      "no qual se alega a nulidade da busca domiciliar realizada sem mandado " +
+      "judicial.\n\nVOTO\n\nA jurisprudência exige justa causa prévia e " +
+      "demonstrável para o ingresso em domicílio. No caso, os elementos " +
+      "anteriores à diligência não foram demonstrados.\n\nDISPOSITIVO\n\n" +
+      "Ante o exposto, concede-se a ordem.",
   },
   {
     id: "00000000-0000-4000-8000-000000000002",
@@ -116,7 +124,9 @@ const DEMO_ITENS = [
     camara: "2ª Câmara Criminal",
     assunto: "Habeas Corpus - Prisão Preventiva",
     resultado: "Não concedida",
-    ementa:
+    inteiro_teor:
+      "ESTADO DO ESPÍRITO SANTO\nPODER JUDICIÁRIO\n\n\n\nTRIBUNAL DE JUSTIÇA\n" +
+      "PROCESSO Nº 5000000-22.2025.8.08.0000\n\n\n" +
       "EMENTA FICTÍCIA — HABEAS CORPUS. PRISÃO PREVENTIVA. NULIDADE DA BUSCA " +
       "DOMICILIAR ALEGADA. CONSENTIMENTO VÁLIDO DO MORADOR REGISTRADO EM " +
       "GRAVAÇÃO. SEGREGAÇÃO FUNDAMENTADA. ORDEM DENEGADA.\n\n" +
@@ -133,7 +143,9 @@ const DEMO_ITENS = [
     camara: "1ª Câmara Criminal",
     assunto: "Habeas Corpus - Excesso de Prazo",
     resultado: "Concedida parcialmente",
-    ementa:
+    inteiro_teor:
+      "ESTADO DO ESPÍRITO SANTO\nPODER JUDICIÁRIO\n\n\n\nTRIBUNAL DE JUSTIÇA\n" +
+      "PROCESSO Nº 5000000-33.2024.8.08.0000\n\n\n" +
       "EMENTA FICTÍCIA — HABEAS CORPUS. EXCESSO DE PRAZO NA FORMAÇÃO DA CULPA. " +
       "FEITO PARALISADO POR MAIS DE CENTO E OITENTA DIAS SEM CAUSA ATRIBUÍVEL À " +
       "DEFESA. ORDEM PARCIALMENTE CONCEDIDA.\n\n" +
@@ -141,15 +153,6 @@ const DEMO_ITENS = [
       "2. Substituição da preventiva por medidas cautelares diversas.",
   },
 ];
-
-const DEMO_TEOR =
-  "INTEIRO TEOR FICTÍCIO — este texto existe apenas para demonstrar o formato " +
-  "do endpoint de detalhe.\n\nRELATÓRIO\n\nTrata-se de habeas corpus impetrado " +
-  "em favor do paciente, no qual se alega a nulidade da busca domiciliar " +
-  "realizada sem mandado judicial.\n\nVOTO\n\nA jurisprudência exige justa " +
-  "causa prévia e demonstrável para o ingresso em domicílio. No caso, os " +
-  "elementos anteriores à diligência não foram demonstrados.\n\nDISPOSITIVO\n\n" +
-  "Ante o exposto, concede-se a ordem.";
 
 function pausa(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
@@ -160,7 +163,7 @@ async function demoBuscar(pedido) {
   if (pedido.camara) itens = itens.filter((i) => i.camara === pedido.camara);
   if (pedido.magistrado) itens = itens.filter((i) => i.magistrado === pedido.magistrado);
   if (termo) {
-    itens = itens.filter((i) => i.ementa.toLowerCase().includes(termo.split(/\s+/)[0]));
+    itens = itens.filter((i) => i.inteiro_teor.toLowerCase().includes(termo.split(/\s+/)[0]));
   }
   const avisos = [];
   // Reproduz o aviso que mais importa: filtrar pode afrouxar a pergunta, e
@@ -186,7 +189,7 @@ async function demoAcordao(id) {
   await pausa(260);
   const i = DEMO_ITENS.find((x) => x.id === id);
   if (!i) throw new ErroApi("acórdão não encontrado", 404);
-  return { ...i, inteiro_teor: DEMO_TEOR };
+  return { ...i };
 }
 
 async function demoRecentes(recurso, pagina) {
