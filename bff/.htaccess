@@ -1,0 +1,19 @@
+# Nada de arquivo oculto sai desta pasta.
+#
+# O BFF fica dentro do webroot, então um `.env` criado aqui por engano seria
+# servido como texto — e ele carrega o segredo que assina as chamadas. Esta
+# regra fecha isso para o Apache.
+#
+# Em nginx a regra equivalente vai na configuração do site:
+#
+#     location ~ /\. { deny all; }
+
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+# Apache 2.2, se for o caso:
+# <FilesMatch "^\.">
+#   Order allow,deny
+#   Deny from all
+# </FilesMatch>

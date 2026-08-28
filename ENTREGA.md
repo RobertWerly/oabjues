@@ -36,7 +36,7 @@ index.html      a busca
 acordao.html    a página de um acórdão
 assets/
 public/
-bff/
+bff/            inclusive o .htaccess, que bloqueia arquivo oculto na pasta
 ```
 
 **Não copie** `api/`, `vercel.json` nem `.vercelignore`. Eles existem só para
@@ -57,8 +57,18 @@ processo PHP — **nunca no código, nunca no Git**:
 | `OABJUS_CHAVE` | o identificador da chave |
 | `OABJUS_SEGREDO` | o segredo correspondente |
 
-Os três valores chegam junto com a chave, por canal fechado. O molde está em
-`bff/.env.example`.
+Os três valores chegam junto com a chave, por canal fechado.
+
+**Renomear `bff/.env.example` para `.env` não funciona.** O BFF lê com
+`getenv()`, e o PHP não carrega arquivo `.env` sozinho — isso é coisa de
+framework, não da linguagem. Pior: um `.env` ali fica dentro da pasta
+publicada, onde o servidor pode entregá-lo como texto. O arquivo é só o molde
+dos três nomes; ele traz o trecho pronto para Apache (`SetEnv`), PHP-FPM
+(`env[...]`) e nginx (`fastcgi_param`).
+
+O `bff/.htaccess` que acompanha bloqueia arquivo oculto nessa pasta, para o
+caso de alguém criar um `.env` mesmo assim. Em nginx, a regra equivalente é
+`location ~ /\. { deny all; }`.
 
 Confirme que `/bff/jurisprudencia.php` é **executado**, e não servido como
 texto: um `.php` entregue como arquivo mostra o código-fonte, e o código lê o
