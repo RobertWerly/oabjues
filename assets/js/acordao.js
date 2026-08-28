@@ -12,17 +12,20 @@
 // link de um acórdão, o botão voltar do navegador funciona e abrir em nova aba
 // não perde a busca.
 // ============================================================================
-import { acordao, RECURSOS, ErroApi } from "./api.js";
+import { acordao, ErroApi } from "./api.js";
 import { esc, limparEspacos, dataBr, classeDistintivo } from "./formato.js";
 
 const $ = (id) => document.getElementById(id);
 const alvo = $("conteudo");
 const params = new URLSearchParams(location.search);
 const id = params.get("id") ?? "";
-const recurso = params.get("recurso") ?? "";
 const JUES = "https://jurimetriaes.com";
 
-const rotuloRecurso = RECURSOS.find(([v]) => v === recurso)?.[1] ?? "";
+// O rótulo do recurso vem NA RESPOSTA do acórdão (`recurso_rotulo`), não da
+// query string nem de uma tabela escrita aqui. O `?recurso=` que a busca
+// acrescenta ao link continua sendo aceito, mas só como reserva para o
+// instante entre abrir a página e a resposta chegar.
+let rotuloRecurso = "";
 
 // Quem chegou da busca volta para ela como estava; quem colou o link cai na
 // página inicial.
@@ -230,7 +233,9 @@ if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
   erro("Acórdão não informado", "O endereço desta página precisa do identificador do acórdão.");
 } else {
   try {
-    montar(await acordao(id));
+    const d = await acordao(id);
+    rotuloRecurso = d.recurso_rotulo ?? "";
+    montar(d);
   } catch (e) {
     if (e instanceof ErroApi && e.status === 404) {
       erro("Acórdão não encontrado",

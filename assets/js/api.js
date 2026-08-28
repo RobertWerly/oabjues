@@ -36,14 +36,11 @@ const BASE = document.querySelector('meta[name="oabjus-bff"]')?.content?.trim()
  */
 export const DEMO = new URLSearchParams(location.search).get("demo") === "1";
 
-export const RECURSOS = [
-  ["habeas_corpus", "Habeas Corpus"],
-  ["apelacao_criminal", "Apelação Criminal"],
-  ["agravo_execucao", "Agravo em Execução"],
-  ["recurso_sentido_estrito", "Recurso em Sentido Estrito"],
-  ["revisao_criminal", "Revisão Criminal"],
-  ["embargos_infringentes", "Embargos Infringentes"],
-];
+// A lista de recursos NÃO mora aqui. Ela vem de `vocabulario()` sem argumento,
+// junto com os rótulos. Escrevê-la neste arquivo era ter o catálogo do acervo
+// em dois lugares — e os dois já tinham divergido: aqui dizia "Agravo em
+// Execução" e "Embargos Infringentes", o JurimetriaES diz "Agravo em Execução
+// Penal" e "Embargos Infringentes e de Nulidade".
 
 export const POR_PAGINA = 20;
 export const PAGINA_MAX = 10;
@@ -95,9 +92,12 @@ export async function acordao(id) {
   return chamar(`acordao/${encodeURIComponent(id)}`);
 }
 
+/** Sem `recurso`, devolve só a lista de recursos — que é o que a página precisa
+ *  antes de poder escolher um. Com ele, devolve o vocabulário daquele recurso
+ *  (que também traz a lista, para a página não precisar de duas idas). */
 export async function vocabulario(recurso) {
-  if (DEMO) return demoVocabulario();
-  return chamar("vocabulario", { recurso });
+  if (DEMO) return demoVocabulario(recurso);
+  return chamar("vocabulario", recurso ? { recurso } : {});
 }
 
 /** As últimas jurisprudências da janela que o SERVIDOR define. O intervalo de
@@ -228,7 +228,9 @@ async function demoAcordao(id) {
   await pausa(260);
   const i = DEMO_ITENS.find((x) => x.id === id);
   if (!i) throw new ErroApi("acórdão não encontrado", 404);
-  return { ...i };
+  // `recurso_rotulo` acompanha o acórdão de verdade: a página do acórdão lê o
+  // rótulo da resposta, não de uma lista escrita nela.
+  return { ...i, recurso: "habeas_corpus", recurso_rotulo: "Habeas Corpus" };
 }
 
 async function demoRecentes(recurso, pagina) {
@@ -245,9 +247,20 @@ async function demoRecentes(recurso, pagina) {
   };
 }
 
-async function demoVocabulario() {
+const DEMO_RECURSOS = [
+  { id: "habeas_corpus", rotulo: "Habeas Corpus" },
+  { id: "apelacao_criminal", rotulo: "Apelação Criminal" },
+  { id: "agravo_execucao", rotulo: "Agravo em Execução Penal" },
+  { id: "recurso_sentido_estrito", rotulo: "Recurso em Sentido Estrito" },
+  { id: "revisao_criminal", rotulo: "Revisão Criminal" },
+  { id: "embargos_infringentes", rotulo: "Embargos Infringentes e de Nulidade" },
+];
+
+async function demoVocabulario(recurso) {
   await pausa(120);
+  if (!recurso) return { recursos: DEMO_RECURSOS };
   return {
+    recursos: DEMO_RECURSOS,
     camara: ["1ª Câmara Criminal", "2ª Câmara Criminal"],
     // Mesmo formato da API: nome + a câmara de que ele é TITULAR. Vem do
     // cadastro da composição vigente, não de onde o nome aparece nos acórdãos.

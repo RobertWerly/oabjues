@@ -79,11 +79,11 @@
           <span class="fw-bold" style="font-size:.75rem;color:var(--oab-texto-2)">
             <i class="fas fa-building"></i> Câmara:
           </span>
-          <div class="segmentado" id="seg-camara" role="group" aria-label="Câmara">
-            <button type="button" data-camara="" aria-pressed="true">Todas</button>
-            <button type="button" data-camara="1ª Câmara Criminal" aria-pressed="false">1ª Câmara</button>
-            <button type="button" data-camara="2ª Câmara Criminal" aria-pressed="false">2ª Câmara</button>
-          </div>
+          <!-- Os botões são montados pelo JavaScript com as câmaras que o
+               acervo tem NAQUELE recurso. Escritos aqui, "1ª Câmara" e "2ª
+               Câmara" ficavam errados em revisão criminal e embargos, onde o
+               órgão julgador é "Câmaras Criminais Reunidas". -->
+          <div class="segmentado" id="seg-camara" role="group" aria-label="Câmara"></div>
         </div>
       </div>
 

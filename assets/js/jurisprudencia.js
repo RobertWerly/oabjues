@@ -13,7 +13,7 @@
 //   sem total a API não devolve contagem. O fim da lista é `tem_mais: false`,
 //             nunca um zero que se confunde com "nada encontrado".
 // ============================================================================
-import { buscar, vocabulario, recentes, RECURSOS, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
+import { buscar, vocabulario, recentes, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
 import { esc, grifar, trecho, dataBr, dataCurta, classeDistintivo }
   from "./formato.js";
@@ -24,8 +24,6 @@ let pagina = 1, camara = "", carregando = false;
 
 if (DEMO) $("aviso-demo").hidden = false;
 
-for (const [valor, rotulo] of RECURSOS) $("recurso").add(new Option(rotulo, valor));
-
 // ── seletor de câmara ─────────────────────────────────────────────────────
 $("seg-camara").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-camara]");
@@ -35,6 +33,39 @@ $("seg-camara").addEventListener("click", (e) => {
     outro.setAttribute("aria-pressed", String(outro === b));
   }
 });
+
+/**
+ * Os botões de câmara, montados com o que o acervo tem NAQUELE recurso.
+ *
+ * Eram três botões escritos no HTML: Todas, 1ª Câmara, 2ª Câmara. Isso estava
+ * errado além de duplicado — em revisão criminal e embargos infringentes o
+ * órgão julgador não é "1ª Câmara Criminal", é "Câmaras Criminais Reunidas" e
+ * "Reunidas - 1º Grupo Criminal". Nesses dois recursos, clicar em "1ª Câmara"
+ * pedia um valor que não existe e a busca voltava vazia sem dizer por quê.
+ *
+ * A câmara escolhida é zerada quando não sobrevive à troca de recurso, pelo
+ * mesmo motivo do período: filtro invisível que continua valendo é pior que
+ * filtro nenhum.
+ */
+function montarCamaras(camaras) {
+  const cx = $("seg-camara");
+  const lista = camaras ?? [];
+  if (!lista.includes(camara)) camara = "";
+  cx.innerHTML = "";
+  const botao = (valor, rotulo) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.camara = valor;
+    b.textContent = rotulo;
+    b.setAttribute("aria-pressed", String(valor === camara));
+    cx.appendChild(b);
+  };
+  botao("", "Todas");
+  // "1ª Câmara Criminal" vira "1ª Câmara" no botão: a palavra "Criminal" se
+  // repete em todos e o painel inteiro já é de jurisprudência criminal. Nomes
+  // que não terminam em "Criminal" aparecem inteiros.
+  for (const c of lista) botao(c, c.replace(/ Criminal$/, ""));
+}
 
 // ── utilidades ────────────────────────────────────────────────────────────
 // esc, grifar, trecho, dataBr, dataCurta e classeDistintivo vivem em
@@ -442,6 +473,7 @@ async function carregarVocabulario() {
   // devolve zero em silêncio — a comarca se disca por id, não por nome.
   try {
     const v = await vocabulario($("recurso").value);
+    montarCamaras(v.camara);
     encher($("assunto"), v.assunto, "Todos");
     encher($("comarca"), v.comarca, "Todas");
     encherMagistrados($("magistrado"), v.magistrado);
@@ -475,5 +507,32 @@ $("limpar").addEventListener("click", () => {
 $("anterior").addEventListener("click", () => executar(Math.max(1, pagina - 1)));
 $("proxima").addEventListener("click", () => executar(Math.min(PAGINA_MAX, pagina + 1)));
 
-estadoVazio({ inicial: true });
-carregarVocabulario();
+/**
+ * O arranque. Os recursos vêm da API — a página não nasce sabendo quais são.
+ *
+ * É uma ida a mais na primeira carga, e é o preço de não ter o catálogo do
+ * acervo escrito dentro do site da OAB. As duas cópias já tinham divergido: o
+ * site dizia "Agravo em Execução" e "Embargos Infringentes"; o JurimetriaES,
+ * "Agravo em Execução Penal" e "Embargos Infringentes e de Nulidade". A rota
+ * responde com cache de uma hora, então a ida extra acontece uma vez.
+ */
+async function iniciar() {
+  const sel = $("recurso");
+  try {
+    const { recursos } = await vocabulario();
+    for (const r of recursos ?? []) sel.add(new Option(r.rotulo, r.id));
+  } catch {
+    // Sem a lista não há busca possível: `recurso` é obrigatório no contrato.
+    // Melhor dizer isso do que deixar um seletor vazio parecendo escolha.
+    nota('<i class="fas fa-plug me-1"></i> O serviço de jurisprudência está indisponível no momento.');
+    return;
+  }
+  if (!sel.options.length) {
+    nota('<i class="fas fa-plug me-1"></i> O serviço de jurisprudência não devolveu nenhum tipo de recurso.');
+    return;
+  }
+  estadoVazio({ inicial: true });
+  await carregarVocabulario();
+}
+
+iniciar();
