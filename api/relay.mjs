@@ -1063,12 +1063,12 @@ var init_oab_api = __esm({
   }
 });
 
-// ../../../tmp/claude-0/-home-user/0eeb1014-9b44-5c85-8381-7f498463bf52/scratchpad/shim-deno.mjs
+// shim de ambiente: Deno.env sobre process.env
 if (typeof globalThis.Deno === "undefined") {
   globalThis.Deno = { env: { get: (nome) => process.env[nome] } };
 }
 
-// ../../../tmp/claude-0/-home-user/0eeb1014-9b44-5c85-8381-7f498463bf52/scratchpad/relay-entry.ts
+// entrada da Vercel: adapta (req, res) para Request/Response
 var relay = null;
 async function carregar() {
   relay ??= await Promise.resolve().then(() => (init_oab_api(), oab_api_exports));
