@@ -1016,11 +1016,19 @@ async function atender(req) {
   }
   const corpo = req.method === "POST" ? await req.text() : "";
   const caminho = "/" + rota.join("/");
+  let bancoFalhou = false;
   const auth = await autenticar(req, caminho, corpo, CHAVES, async (chave, nonce) => {
     const { data, error } = await sb.rpc("oab_api_consumir_nonce", { p_chave: chave, p_nonce: nonce });
-    return !error && data === true;
+    if (error) {
+      bancoFalhou = true;
+      return false;
+    }
+    return data === true;
   });
-  if (!auth.ok) return json({ erro: auth.motivo }, 401, origem);
+  if (!auth.ok) {
+    if (bancoFalhou) return json({ erro: "servi\xE7o de jurisprud\xEAncia indispon\xEDvel" }, 503, origem);
+    return json({ erro: auth.motivo }, 401, origem);
+  }
   try {
     if (req.method === "POST" && rota[0] === "busca") {
       return await rotaBusca(corpo, auth.id.chave, origem, t0);
