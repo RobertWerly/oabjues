@@ -260,7 +260,7 @@ function estadoVazio({ inicial }) {
         ${EXEMPLOS.map((e) => `<button type="button" data-exemplo="${esc(e)}">${esc(e)}</button>`).join("")}
       </div>
     </div>
-    <section id="recentes" class="mt-4" aria-label="Últimas jurisprudências"></section>`;
+    <section id="recentes" class="mt-4" aria-label="Últimos acórdãos"></section>`;
   for (const b of lista.querySelectorAll("[data-exemplo]")) {
     b.addEventListener("click", () => {
       $("q").value = b.dataset.exemplo;
@@ -279,17 +279,17 @@ function dataCurta(iso) {
 
 /** As últimas da janela, abaixo do estado vazio. A janela é do servidor: a
  *  resposta traz `desde` e `dias`, e a página só repete o que ele disse. */
-async function carregarRecentes() {
+async function carregarRecentes(n = 1) {
   const alvo = $("recentes");
   if (!alvo) return;
   const rotulo = $("recurso").selectedOptions[0]?.text ?? "";
   alvo.innerHTML = `<p class="text-center py-3" style="color:var(--oab-texto-3);font-size:.88rem">
-    <span class="spinner-border spinner-border-sm me-2"></span>Carregando as últimas decisões…</p>`;
+    <span class="spinner-border spinner-border-sm me-2"></span>Carregando os últimos acórdãos…</p>`;
   try {
-    const r = await recentes($("recurso").value, 1);
+    const r = await recentes($("recurso").value, n);
     const cabecalho = `
       <div class="cabecalho-recentes d-flex align-items-baseline justify-content-between flex-wrap gap-2">
-        <h2>Últimas dos ${r.dias ?? 7} dias — ${esc(rotulo)}</h2>
+        <h2>Últimos acórdãos (${r.dias ?? 7} dias) — ${esc(rotulo)}</h2>
         ${r.desde ? `<span class="desde">desde ${dataCurta(r.desde)}</span>` : ""}
       </div>`;
     if (!r.itens?.length) {
@@ -307,6 +307,34 @@ async function carregarRecentes() {
     }
     alvo.innerHTML = cabecalho;
     for (const item of r.itens) alvo.appendChild(cartao(item, [], rotulo));
+
+    // A janela pode ter mais que uma página, e o mesmo teto de 200 vale aqui.
+    // Sem contagem na resposta, `tem_mais` é o único sinal de que há próxima —
+    // por isso "Próxima" nasce desabilitada e só liga quando o servidor diz.
+    const nav = document.createElement("nav");
+    nav.className = "paginacao d-flex justify-content-center align-items-center gap-2 mt-3";
+    nav.setAttribute("aria-label", "Paginação dos últimos acórdãos");
+    nav.innerHTML = `
+      <button type="button" class="btn btn-sm btn-contorno" data-ir="anterior" ${n <= 1 ? "disabled" : ""}>
+        <i class="fas fa-chevron-left me-1"></i> Anterior</button>
+      <span style="font-size:.85rem;color:var(--oab-texto-2)">Página ${n}</span>
+      <button type="button" class="btn btn-sm btn-contorno" data-ir="proxima" ${r.tem_mais ? "" : "disabled"}>
+        Próxima <i class="fas fa-chevron-right ms-1"></i></button>`;
+    nav.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-ir]");
+      if (!b || b.disabled) return;
+      carregarRecentes(b.dataset.ir === "anterior" ? n - 1 : n + 1);
+      alvo.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    alvo.appendChild(nav);
+
+    if (!r.tem_mais && n >= PAGINA_MAX) {
+      const teto = document.createElement("p");
+      teto.className = "text-center mt-2";
+      teto.style.cssText = "font-size:.82rem;color:var(--oab-texto-3)";
+      teto.textContent = `Esta lista mostra até ${PAGINA_MAX * POR_PAGINA} acórdãos; use a busca para ir além.`;
+      alvo.appendChild(teto);
+    }
   } catch {
     alvo.innerHTML = "";   // a lista é um extra; falhar nela não estraga a página
   }
