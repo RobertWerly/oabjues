@@ -104,7 +104,6 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
 .faixa-jurimetria p{color:#d7e0ea}
 
 .cabecalho-resultados{border-bottom:2px solid var(--oab-borda)}
-.cabecalho-resultados a{color:var(--oab-vermelho);font-weight:800}
 
 /* Cartão de decisão */
 .cartao{background:var(--oab-superficie);border:1px solid var(--oab-borda);border-radius:.75rem}
