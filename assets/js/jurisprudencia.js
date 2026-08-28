@@ -40,6 +40,33 @@ $("seg-camara").addEventListener("click", (e) => {
 // esc, grifar, trecho, dataBr, dataCurta e classeDistintivo vivem em
 // formato.js: a página do acórdão mostra o mesmo texto e usa as mesmas regras.
 
+const NUM = new Intl.NumberFormat("pt-BR");
+
+/**
+ * "Página 3 de 7".
+ *
+ * `paginas` vem do servidor já limitado ao teto de 200, e não é o mesmo que
+ * total/20: uma pesquisa com 8.235 acórdãos tem 412 páginas no acervo e 10
+ * aqui. Escrever o número do acervo prometeria uma página que a própria API
+ * recusa com 400.
+ *
+ * Sem `paginas` na resposta — API antiga, ou resposta sem contagem — mostra só
+ * a página atual, como antes.
+ */
+function rotuloPagina(n, r) {
+  return r?.paginas > 0 ? `Página ${n} de ${r.paginas}` : `Página ${n}`;
+}
+
+/** Quantos a pesquisa achou, e o aviso quando há mais do que cabe entregar. */
+function rotuloTotal(r) {
+  if (!(r?.total >= 0)) {
+    return `${r.itens.length} ${r.itens.length === 1 ? "decisão" : "decisões"} nesta página`;
+  }
+  const teto = PAGINA_MAX * POR_PAGINA;
+  const achados = `${NUM.format(r.total)} ${r.total === 1 ? "acórdão" : "acórdãos"}`;
+  return r.total > teto ? `${achados} — mostrando os ${NUM.format(teto)} primeiros` : achados;
+}
+
 function nota(html, classe = "aviso-motor") {
   const d = document.createElement("div");
   d.className = `${classe} mb-2`;
@@ -192,7 +219,8 @@ async function carregarRecentes(n = 1) {
     const cabecalho = `
       <div class="cabecalho-recentes d-flex align-items-baseline justify-content-between flex-wrap gap-2">
         <h2>Últimos acórdãos (${r.dias ?? 7} dias) — ${esc(rotulo)}</h2>
-        ${r.desde ? `<span class="desde">desde ${dataCurta(r.desde)}</span>` : ""}
+        <span class="desde">${r.total >= 0 ? `${NUM.format(r.total)} no período` : ""}${
+          r.total >= 0 && r.desde ? " · " : ""}${r.desde ? `desde ${dataCurta(r.desde)}` : ""}</span>
       </div>`;
     if (!r.itens?.length) {
       // Caso real, não hipótese: em embargos infringentes o acervo pára quase
@@ -219,7 +247,7 @@ async function carregarRecentes(n = 1) {
     nav.innerHTML = `
       <button type="button" class="btn btn-sm btn-contorno" data-ir="anterior" ${n <= 1 ? "disabled" : ""}>
         <i class="fas fa-chevron-left me-1"></i> Anterior</button>
-      <span style="font-size:.85rem;color:var(--oab-texto-2)">Página ${n}</span>
+      <span style="font-size:.85rem;color:var(--oab-texto-2)">${rotuloPagina(n, r)}</span>
       <button type="button" class="btn btn-sm btn-contorno" data-ir="proxima" ${r.tem_mais ? "" : "disabled"}>
         Próxima <i class="fas fa-chevron-right ms-1"></i></button>`;
     nav.addEventListener("click", (e) => {
@@ -281,12 +309,9 @@ async function executar(n) {
     lista.dataset.estado = "lista";
     for (const item of r.itens) lista.appendChild(cartao(item, r.radicais, rotuloRecurso));
 
-    // Sem contagem: a navegação vive de `tem_mais`, e o teto de 200 é dito ao
-    // advogado quando ele chega nele, em vez de a lista simplesmente acabar.
-    $("rotulo-pagina").textContent =
-      `${r.itens.length} ${r.itens.length === 1 ? "decisão" : "decisões"} nesta página`;
+    $("rotulo-pagina").textContent = rotuloTotal(r);
     paginacao.hidden = false;
-    $("pagina-atual").textContent = `Página ${pagina}`;
+    $("pagina-atual").textContent = rotuloPagina(pagina, r);
     $("anterior").disabled = pagina <= 1;
     $("proxima").disabled = !r.tem_mais || pagina >= PAGINA_MAX;
     // Acabar a lista não é aviso: o botão "Próxima" desabilitado já diz isso, e
