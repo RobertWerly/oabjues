@@ -1,17 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-
-  "//": [
-    "outputDirectory: a raiz do repositório é o site. Sem isto a Vercel usa",
-    "`public/` como raiz — é o padrão dela quando não há framework e existe",
-    "uma pasta com esse nome. Aqui `public/` guarda só os logos, então o site",
-    "inteiro respondia 404.",
-    "",
-    "rewrites: manda /bff/jurisprudencia.php para a função Node, que faz o",
-    "mesmo que o BFF em PHP. Assim a página não precisa saber qual dos dois",
-    "está no ar."
-  ],
-
   "outputDirectory": ".",
   "rewrites": [
     { "source": "/bff/jurisprudencia.php", "destination": "/api/jurisprudencia" }

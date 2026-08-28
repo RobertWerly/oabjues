@@ -101,6 +101,16 @@ OAB-ES roda PHP: use `bff/jurisprudencia.php` e apague `api/`, `vercel.json` e
 `.vercelignore`. Para publicar na Vercel é o contrário — o `vercel.json`
 reescreve o caminho, então a página não precisa saber qual dos dois está no ar.
 
+Duas linhas do `vercel.json` que parecem supérfluas e não são (JSON não aceita
+comentário, então ficam explicadas aqui):
+
+- **`outputDirectory: "."`** — sem framework detectado, a Vercel usa `public/`
+  como raiz do site quando essa pasta existe. Aqui ela guarda só os logos, e o
+  site inteiro respondia 404.
+- **`.vercelignore` com `bff/`** — as reescritas rodam depois da busca no
+  sistema de arquivos, então o `.php` seria servido como estático, mostrando o
+  código-fonte em vez de executar.
+
 | se você quiser… | mexa em |
 |---|---|
 | trocar cor, espaçamento, tamanho | `assets/css/jurisprudencia.css` — as cores são variáveis no topo |
