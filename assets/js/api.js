@@ -249,13 +249,15 @@ async function demoVocabulario() {
   await pausa(120);
   return {
     camara: ["1ª Câmara Criminal", "2ª Câmara Criminal"],
-    // Mesmo formato da API: nome + as câmaras em que ele tem acórdão. O
-    // primeiro desembargador fictício aparece nas duas, de propósito — é o
-    // caso que existe no acervo e que o seletor precisa saber desenhar.
-    magistrado: [...new Set(DEMO_ITENS.map((i) => i.magistrado))].sort().map((nome) => ({
-      nome,
-      camaras: [...new Set(DEMO_ITENS.filter((i) => i.magistrado === nome).map((i) => i.camara))].sort(),
-    })),
+    // Mesmo formato da API: nome + a câmara de que ele é TITULAR. Vem do
+    // cadastro da composição vigente, não de onde o nome aparece nos acórdãos.
+    // O terceiro é `null` de propósito — é o substituto/convocado, o caso que
+    // hoje não existe no acervo e que o seletor precisa saber desenhar.
+    magistrado: [
+      { nome: "DESEMBARGADOR EXEMPLO PRIMEIRO", camara: "1ª Câmara Criminal" },
+      { nome: "DESEMBARGADORA EXEMPLO SEGUNDA", camara: "2ª Câmara Criminal" },
+      { nome: "DESEMBARGADOR EXEMPLO CONVOCADO", camara: null },
+    ],
     assunto: [...new Set(DEMO_ITENS.map((i) => i.assunto))].sort(),
     comarca: [
       { id: "vitoria", nome: "Vitória" },

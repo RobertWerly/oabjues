@@ -108,11 +108,11 @@
           <label class="rotulo" for="comarca">Jurisdição / Comarca</label>
           <select class="form-select" id="comarca"><option value="">Todas</option></select>
         </div>
-        <!-- Os nomes vêm separados por câmara, em <optgroup>. A separação é do
-             acervo, não de uma tabela de lotação: cada desembargador aparece
-             no grupo da câmara em que ele TEM acórdão. Quem tem nas duas fica
-             num terceiro grupo — são de 5 a 9 por recurso, e encaixá-los numa
-             só pela maioria poria 7 de 28 no lugar errado. -->
+        <!-- Os nomes vêm separados por câmara, em <optgroup>. A câmara é a de
+             TITULARIDADE VIGENTE, do cadastro da composição — não de onde o
+             nome aparece nos acórdãos, que é rastro histórico e mistura
+             convocação com substituição. Quem julgou e não está no cadastro
+             cai em "Substitutos e convocados". -->
         <div class="col-12 col-sm-6 col-lg-3">
           <label class="rotulo" for="magistrado">Desembargador(a)</label>
           <select class="form-select" id="magistrado"><option value="">Todos</option></select>

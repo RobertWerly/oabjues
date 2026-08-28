@@ -130,10 +130,10 @@ contagens do acervo.
   filtros.
 - **Tipo de recurso é obrigatório** — uma pesquisa não cruza recursos.
 - Assunto, comarca, câmara e desembargador aceitam **um valor cada**.
-- O `/vocabulario` devolve o desembargador como `{nome, camaras}` — as câmaras
-  em que ele **tem acórdão**, que é como o seletor da página se separa. É lista
-  e não valor único porque de 5 a 9 desembargadores por recurso julgam nas
-  duas; a página junta esses num terceiro grupo.
+- O `/vocabulario` devolve o desembargador como `{nome, camara}` — a câmara de
+  que ele é **titular hoje**, do cadastro da composição vigente, que é como o
+  seletor da página se separa. `camara: null` é substituto ou convocado: julgou,
+  mas não consta da composição.
 - **Período é opcional.** Em branco, a busca é a mesma de sempre. Preenchido,
   vai em `AAAA-MM-DD`, com as duas pontas inclusivas e qualquer uma delas
   sozinha ("de tal data em diante", "até tal data"). O `/vocabulario` devolve

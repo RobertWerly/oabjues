@@ -397,27 +397,33 @@ function aplicarPeriodo(periodo) {
 }
 
 /**
- * O seletor de desembargador, separado por câmara.
+ * O seletor de desembargador, separado pela câmara de que ele é TITULAR HOJE.
  *
- * A separação vem do ACERVO, não de uma tabela de lotação: cada nome entra no
- * grupo da câmara em que ele tem acórdão. Medido no recorte entregável, de 18
- * a 28 desembargadores por recurso — e de 5 a 9 deles julgam NAS DUAS câmaras,
- * o que não é convocação esporádica (CLAUDIA VIEIRA aparece 55%/45%, JAIME
- * FERREIRA 60%/40%). Atribuir cada um a uma câmara pela maioria poria 7 de 28
- * no grupo errado, e o seletor afirmaria o que o acervo desmente. Por isso
- * existe o terceiro grupo, e por isso ele vem por último: é a exceção.
+ * A titularidade vem do cadastro da composição vigente, não do acervo. Montar
+ * o grupo a partir de onde o nome aparece nos acórdãos era o erro da primeira
+ * versão: o acervo é o rastro histórico da câmara, e o rastro mistura
+ * titularidade com convocação e substituição. Sete de vinte e oito acabavam
+ * num grupo "nas duas câmaras" que não existe na vida real — ninguém é titular
+ * de duas.
  *
- * O grupo só aparece quando tem gente dentro — em revisão criminal e embargos
- * as câmaras nem se chamam "1ª" e "2ª", e um <optgroup> vazio seria um rótulo
- * anunciando nada.
+ * `camara: null` é quem julgou e não está no cadastro vigente: substituto ou
+ * convocado. Hoje não há nenhum (medido: 28/28, 27/27, 27/27, 24/24, 18/18 e
+ * 16/16 casam), e é por isso mesmo que o grupo existe — quando aparecer um, ele
+ * tem lugar. Um nome que some do filtro é pior que um nome sem grupo.
+ *
+ * Os grupos saem dos próprios dados, e não da lista de câmaras do acervo: em
+ * revisão criminal e embargos o órgão julgador é "Reunidas", mas o
+ * desembargador continua sendo titular da 1ª ou da 2ª.
  */
-function encherMagistrados(sel, valores, camaras) {
+function encherMagistrados(sel, valores) {
   const atual = sel.value;
   sel.innerHTML = "";
   sel.add(new Option("Todos", ""));
 
-  const lista = (valores ?? []).map((v) => (typeof v === "string" ? { nome: v, camaras: [] } : v))
+  const lista = (valores ?? [])
+    .map((v) => (typeof v === "string" ? { nome: v, camara: null } : v))
     .filter((v) => v && v.nome);
+
   const grupo = (rotulo, gente) => {
     if (!gente.length) return;
     const g = document.createElement("optgroup");
@@ -426,13 +432,9 @@ function encherMagistrados(sel, valores, camaras) {
     sel.appendChild(g);
   };
 
-  for (const c of camaras ?? []) {
-    grupo(c, lista.filter((m) => m.camaras?.length === 1 && m.camaras[0] === c));
-  }
-  grupo("Nas duas câmaras", lista.filter((m) => (m.camaras?.length ?? 0) > 1));
-  // Sem câmara declarada não é caso previsto, mas some se ficar de fora — e um
-  // nome que some do filtro é pior que um nome sem grupo.
-  grupo("", lista.filter((m) => !m.camaras?.length));
+  const camaras = [...new Set(lista.map((m) => m.camara).filter(Boolean))].sort();
+  for (const c of camaras) grupo(c, lista.filter((m) => m.camara === c));
+  grupo("Substitutos e convocados", lista.filter((m) => !m.camara));
 
   if ([...sel.options].some((o) => o.value === atual)) sel.value = atual;
 }
@@ -444,7 +446,7 @@ async function carregarVocabulario() {
     const v = await vocabulario($("recurso").value);
     encher($("assunto"), v.assunto, "Todos");
     encher($("comarca"), v.comarca, "Todas");
-    encherMagistrados($("magistrado"), v.magistrado, v.camara);
+    encherMagistrados($("magistrado"), v.magistrado);
     aplicarPeriodo(v.periodo);
   } catch {
     // O elemento da nota não existe mais; o aviso vai para a área de mensagens.
