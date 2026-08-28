@@ -151,9 +151,14 @@ Não vem a ementa que o aplicativo mostra: em 93% do acervo ela não é a ementa
 do tribunal, e sim um documento montado que abre em "IDENTIFICAÇÃO" e fecha em
 "JURISPRUDÊNCIA CITADA". Isso é resumo do inteiro teor, que o contrato veta.
 
-Também não são devolvidos, e não existem no contrato: dados de jurimetria,
-perfil decisório, teses, classificações, resumos gerados por IA, nem qualquer
-contagem ou estatística agregada.
+Vem também **quantos acórdãos a pesquisa achou** e **em quantas páginas eles
+cabem** — sem isso a paginação não tem como dizer "página 3 de 7". Contagem de
+resultados não é o que o contrato veta: o que fica de fora é contagem por
+desfecho, que é perfil decisório.
+
+Não são devolvidos, e não existem no contrato: dados de jurimetria, perfil
+decisório, teses, classificações, resumos gerados por IA, nem as facetas do
+motor — entre elas o total por magistrado e por tese.
 
 ### Limites
 
