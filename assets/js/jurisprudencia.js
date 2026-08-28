@@ -15,6 +15,8 @@
 // ============================================================================
 import { buscar, vocabulario, recentes, RECURSOS, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
+import { esc, grifar, trecho, dataBr, dataCurta, classeDistintivo }
+  from "./formato.js";
 
 const $ = (id) => document.getElementById(id);
 const form = $("form"), msgs = $("mensagens"), lista = $("resultados"), paginacao = $("paginacao");
@@ -35,80 +37,8 @@ $("seg-camara").addEventListener("click", (e) => {
 });
 
 // ── utilidades ────────────────────────────────────────────────────────────
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
-  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-
-function grifar(txt, radicais) {
-  const seguro = esc(txt);
-  // `radicais` vem ANINHADO do motor — uma lista por conceito, cada uma com uma
-  // lista por realização: [[[["excess"],["praz"]],[["excess"]],[["praz"]]]].
-  // Sem achatar, o filtro de string descarta tudo e o grifo some sem erro
-  // nenhum na tela. Medido contra a API em produção.
-  const alt = (Array.isArray(radicais) ? radicais.flat(Infinity) : [])
-    .filter((r) => typeof r === "string" && r.length >= 3)
-    .map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .sort((a, b) => b.length - a.length);
-  if (!alt.length) return seguro;
-  return seguro.replace(new RegExp(`(${alt.join("|")})\\p{L}*`, "giu"), "<mark>$&</mark>");
-}
-
-/**
- * O inteiro teor vem do tribunal como texto extraído de PDF: dezenas de linhas
- * em branco, cabeçalho de brasão, quebras no meio de frase. A API entrega
- * verbatim — mexer no texto é dela para fora, não dela para dentro. Quem
- * arruma para LER é a página, e só o espaço em branco.
- */
-function limparEspacos(txt) {
-  return String(txt ?? "")
-    .replace(/\r\n?/g, "\n")
-    .replace(/[ \t]+/g, " ")
-    .replace(/ *\n */g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-/**
- * O trecho do card — três linhas, então cada palavra conta.
- *
- * Duas decisões, as duas medidas no acervo:
- *
- * 1. Espaço vira espaço, sempre. O acórdão vem com o brasão em coluna e uma
- *    linha em branco entre cada parágrafo; preservar isso gastaria as três
- *    linhas do card em "ESTADO DO ESPÍRITO SANTO" e ar. No botão o texto abre
- *    com a formatação intacta.
- * 2. Começa na ÚLTIMA "EMENTA" da primeira metade do documento, não na
- *    primeira. O texto costuma trazer "EMENTA" como título, depois o
- *    cabeçalho do processo (câmara, número, partes, relator) e só então
- *    "ACÓRDÃO EMENTA: DIREITO PROCESSUAL PENAL…", que é o resumo de verdade.
- *    Parar na primeira ocorrência mostra o cabeçalho; parar na última mostra
- *    o julgado.
- */
-function trecho(txt) {
-  const corrido = String(txt ?? "").replace(/\s+/g, " ").trim();
-  const limite = corrido.length * 0.6;
-  let inicio = 0;
-  for (const m of corrido.matchAll(/\bEMENTAS?\b\s*:?\s*/gi)) {
-    if (m.index > limite) break;
-    inicio = m.index + m[0].length;
-  }
-  return corrido.slice(inicio);
-}
-
-const FMT = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
-function dataBr(iso) {
-  if (!iso) return "—";
-  const d = new Date(`${iso}T00:00:00Z`);
-  return Number.isNaN(+d) ? iso : FMT.format(d);
-}
-
-/** As classes do distintivo seguem o desfecho, como no protótipo. */
-function classeDistintivo(r) {
-  const v = (r ?? "").toLowerCase();
-  if (v.includes("parcial")) return "parcial";
-  if (v.startsWith("não") || v.startsWith("nao") || v === "improcedente") return "negada";
-  if (["concedida", "provido", "procedente"].some((x) => v.startsWith(x))) return "concedida";
-  return "outro";
-}
+// esc, grifar, trecho, dataBr, dataCurta e classeDistintivo vivem em
+// formato.js: a página do acórdão mostra o mesmo texto e usa as mesmas regras.
 
 function nota(html, classe = "aviso-motor") {
   const d = document.createElement("div");
@@ -185,9 +115,9 @@ function cartao(item, radicais, rotuloRecurso) {
         <a class="btn btn-sm btn-contorno text-nowrap" data-acao="jues" target="_blank" rel="noopener noreferrer">
           <i class="fas fa-external-link-alt me-1" style="color:var(--oab-vermelho)"></i> Abrir no JUES
         </a>
-        <button type="button" class="btn btn-sm btn-oab text-nowrap" data-acao="teor">
+        <a class="btn btn-sm btn-oab text-nowrap" data-acao="teor">
           <i class="fas fa-book-open me-1"></i> Inteiro teor
-        </button>
+        </a>
       </div>
     </div>`;
 
@@ -204,33 +134,12 @@ function cartao(item, radicais, rotuloRecurso) {
     } catch { /* sem permissão de área de transferência */ }
   });
 
-  // O texto JÁ VEIO na listagem — a API devolve inteiro teor em cada item.
-  // Abrir não custa requisição, não custa espera e não conta contra o teto
-  // diário de documentos. O endpoint de detalhe continua existindo no contrato
-  // (e em api.js), para quem integrar de outro jeito.
-  const bTeor = el.querySelector('[data-acao="teor"]');
-  bTeor.addEventListener("click", () => {
-    const aberto = el.querySelector(".teor");
-    if (aberto) {
-      aberto.remove();
-      bTeor.innerHTML = '<i class="fas fa-book-open me-1"></i> Inteiro teor';
-      return;
-    }
-    const div = document.createElement("div");
-    const texto = limparEspacos(item.inteiro_teor);
-    if (texto) {
-      div.className = "teor mt-3";
-      div.innerHTML = grifar(texto, radicais);
-      bTeor.innerHTML = '<i class="fas fa-compress-alt me-1"></i> Recolher';
-    } else {
-      // 4 acórdãos do acervo (de 21.493) não têm o texto: o TJES não os
-      // devolve em nenhum core da API de jurisprudência. Eles continuam na
-      // lista, com os metadados que existem, e dizem o que houve.
-      div.className = "aviso-motor mt-3";
-      div.textContent = "O inteiro teor deste acórdão não está disponível no acervo.";
-    }
-    el.appendChild(div);
-  });
+  // "Inteiro teor" vai para a PÁGINA do acórdão. É link de verdade, com href:
+  // abre em nova aba com o meio, o buscador do navegador acha, e o advogado
+  // copia o endereço de um acórdão específico.
+  const aTeor = el.querySelector('[data-acao="teor"]');
+  aTeor.href = `acordao.html?id=${encodeURIComponent(item.id)}`
+    + `&recurso=${encodeURIComponent($("recurso").value)}`;
 
   return el;
 }
@@ -268,13 +177,6 @@ function estadoVazio({ inicial }) {
     });
   }
   carregarRecentes();
-}
-
-const DATA_CURTA = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC", day: "2-digit", month: "2-digit" });
-function dataCurta(iso) {
-  if (!iso) return "";
-  const d = new Date(`${iso}T00:00:00Z`);
-  return Number.isNaN(+d) ? iso : DATA_CURTA.format(d);
 }
 
 /** As últimas da janela, abaixo do estado vazio. A janela é do servidor: a
@@ -387,9 +289,10 @@ async function executar(n) {
     $("pagina-atual").textContent = `Página ${pagina}`;
     $("anterior").disabled = pagina <= 1;
     $("proxima").disabled = !r.tem_mais || pagina >= PAGINA_MAX;
-    if (!r.tem_mais) {
-      nota('<i class="fas fa-check-circle me-1"></i> Fim dos resultados para esta pesquisa.');
-    } else if (pagina >= PAGINA_MAX) {
+    // Acabar a lista não é aviso: o botão "Próxima" desabilitado já diz isso, e
+    // uma tarja amarela no topo de uma página cheia de resultados parece
+    // problema onde não há.
+    if (r.tem_mais && pagina >= PAGINA_MAX) {
       nota(`<i class="fas fa-info-circle me-1"></i> Esta pesquisa mostra até
         ${PAGINA_MAX * POR_PAGINA} acórdãos. Há mais no acervo —
         <strong>refine os filtros</strong> para chegar neles.`);

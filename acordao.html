@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acórdão — Jurisprudência criminal OAB-ES</title>
+<meta name="description" content="Inteiro teor do acórdão, reproduzido conforme publicado pelo Tribunal de Justiça do Espírito Santo.">
+<!-- Página de leitura: não deve concorrer com a busca nos buscadores, e o
+     conteúdo é o texto do tribunal, que já é público na fonte. -->
+<meta name="robots" content="noindex">
+
+<!-- As mesmas dependências de index.html. Ao embutir no template da OAB,
+     remova a linha do Bootstrap: o portal já o carrega. -->
+<link rel="stylesheet" href="assets/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700|Roboto:300,400,500,700&display=swap">
+<link rel="stylesheet" href="assets/css/jurisprudencia.css">
+<link rel="icon" href="public/logos/oab.png">
+</head>
+<body>
+
+<header class="barra-topo sticky-top">
+  <div class="container-lg d-flex align-items-center" style="height:56px">
+    <div class="d-flex align-items-center gap-2 text-white">
+      <i class="fas fa-balance-scale" style="color:#f08a80"></i>
+      <span class="titulo fonte-titulo">Busca de jurisprudência criminal</span>
+    </div>
+  </div>
+</header>
+
+<main class="container-lg py-4">
+
+  <!-- O voltar é um link de verdade, com href, e não history.back(): quem
+       chega por link colado não tem histórico para onde voltar. -->
+  <a class="btn btn-sm btn-contorno mb-3" id="voltar" href="index.html">
+    <i class="fas fa-chevron-left me-1"></i> Voltar à busca
+  </a>
+
+  <div id="conteudo" aria-live="polite">
+    <div class="text-center py-5" style="color:var(--oab-texto-2)">
+      <span class="spinner-border spinner-border-sm me-2"></span>Carregando o acórdão…
+    </div>
+  </div>
+
+</main>
+
+<footer class="container-lg rodape py-3 mt-4">
+  Acervo do Tribunal de Justiça do Espírito Santo · os acórdãos são reproduzidos
+  conforme publicados pelo tribunal.
+</footer>
+
+<script type="module" src="assets/js/acordao.js"></script>
+</body>
+</html>
