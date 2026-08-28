@@ -201,8 +201,9 @@ function cartao(item, radicais, rotuloRecurso) {
       div.innerHTML = grifar(texto, radicais);
       bTeor.innerHTML = '<i class="fas fa-compress-alt me-1"></i> Recolher';
     } else {
-      // 24 dos 21.493 acórdãos entregáveis não têm o teor guardado. Eles
-      // aparecem na lista normalmente; só não abrem.
+      // Defensivo: a API não entrega item sem teor (os 24 acórdãos do acervo
+      // que não têm o texto guardado são descartados lá). Se um dia entregar,
+      // o card diz o que houve em vez de abrir uma caixa vazia.
       div.className = "aviso-motor mt-3";
       div.textContent = "O inteiro teor deste acórdão não está disponível no acervo.";
     }
