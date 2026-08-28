@@ -397,23 +397,21 @@ function aplicarPeriodo(periodo) {
 }
 
 /**
- * O seletor de desembargador, separado pela câmara de que ele é TITULAR HOJE.
+ * O seletor de desembargador, separado pela composição VIGENTE das câmaras.
  *
- * A titularidade vem do cadastro da composição vigente, não do acervo. Montar
- * o grupo a partir de onde o nome aparece nos acórdãos era o erro da primeira
- * versão: o acervo é o rastro histórico da câmara, e o rastro mistura
- * titularidade com convocação e substituição. Sete de vinte e oito acabavam
- * num grupo "nas duas câmaras" que não existe na vida real — ninguém é titular
- * de duas.
+ * São quatro titulares em cada uma — é a mesma lista que o aplicativo mostra
+ * na tela de Desembargadores, colhida do site oficial do TJES. Todo o resto é
+ * convocado ou substituto, tenha mil acórdãos na câmara ou nenhum: ter atuado
+ * lá não é compor.
  *
- * `camara: null` é quem julgou e não está no cadastro vigente: substituto ou
- * convocado. Hoje não há nenhum (medido: 28/28, 27/27, 27/27, 24/24, 18/18 e
- * 16/16 casam), e é por isso mesmo que o grupo existe — quando aparecer um, ele
- * tem lugar. Um nome que some do filtro é pior que um nome sem grupo.
+ * Foi exatamente aí que as duas primeiras versões erraram. A primeira montou o
+ * grupo a partir das câmaras em que o nome APARECE nos acórdãos; a segunda, da
+ * coluna `camaras` do cadastro, que lista onde a pessoa compõe ou já compôs.
+ * As duas leram rastro de atuação como se fosse composição, e por isso
+ * dividiam 28 nomes em 19 e 9 — quando a câmara tem quatro.
  *
- * Os grupos saem dos próprios dados, e não da lista de câmaras do acervo: em
- * revisão criminal e embargos o órgão julgador é "Reunidas", mas o
- * desembargador continua sendo titular da 1ª ou da 2ª.
+ * A ordem dentro do grupo é a oficial, não a alfabética, e vem pronta da API:
+ * as duas telas mostram os titulares na mesma sequência.
  */
 function encherMagistrados(sel, valores) {
   const atual = sel.value;
