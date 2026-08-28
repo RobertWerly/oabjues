@@ -92,6 +92,7 @@ assets/js/jurisprudencia.js      a tela: monta cartões, trata erros, pagina
 assets/vendor/bootstrap.min.css  Bootstrap 5.3.3 vendorizado
 bff/jurisprudencia.php           assina com HMAC e repassa  (servidor PHP)
 api/jurisprudencia.mjs           o mesmo BFF, em Node        (Vercel)
+api/oab-api/[[...rota]].mjs      o relay, empacotado         (GERADO — ver abaixo)
 vercel.json                      manda /bff/jurisprudencia.php para a função Node
 public/logos/                    JUES e OAB, com fundo recortado
 ```
@@ -110,6 +111,20 @@ comentário, então ficam explicadas aqui):
 - **`.vercelignore` com `bff/`** — as reescritas rodam depois da busca no
   sistema de arquivos, então o `.php` seria servido como estático, mostrando o
   código-fonte em vez de executar.
+
+### O relay dentro deste repositório (temporário)
+
+`api/oab-api/[[...rota]].mjs` é **arquivo gerado**: é a API de jurisprudência
+(o relay) empacotada a partir do repositório `brainrotjuri`. O lugar dela é a
+edge function do Supabase, e é para lá que ela volta.
+
+Ela está aqui porque o deploy daquele projeto depende de crédito na workspace
+do Lovable; sem crédito, a API congela na última versão publicada. A Vercel
+publica por push. O código que decide é o mesmo — mesma allowlist de entrada,
+mesma projeção de saída, mesmo teto de 200, mesma verificação de HMAC.
+
+Para voltar ao Supabase: aponte `OABJUS_URL` para
+`https://<projeto>.supabase.co/functions/v1/oab-api` e apague `api/oab-api/`.
 
 | se você quiser… | mexa em |
 |---|---|
