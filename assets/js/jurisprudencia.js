@@ -40,7 +40,11 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
 
 function grifar(txt, radicais) {
   const seguro = esc(txt);
-  const alt = (radicais ?? [])
+  // `radicais` vem ANINHADO do motor — uma lista por conceito, cada uma com uma
+  // lista por realização: [[[["excess"],["praz"]],[["excess"]],[["praz"]]]].
+  // Sem achatar, o filtro de string descarta tudo e o grifo some sem erro
+  // nenhum na tela. Medido contra a API em produção.
+  const alt = (Array.isArray(radicais) ? radicais.flat(Infinity) : [])
     .filter((r) => typeof r === "string" && r.length >= 3)
     .map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
     .sort((a, b) => b.length - a.length);
