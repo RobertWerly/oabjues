@@ -26,9 +26,13 @@
 // VARIÁVEIS (Vercel › Settings › Environment Variables)
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OAB_API_CHAVES
 //
-// A rota mora em /api/oab-api/[[...rota]] de propósito: a assinatura cobre o
+// A rota mora em /api/oab-api/[...rota] de propósito: a assinatura cobre o
 // caminho depois de `oab-api`, e assim a base assinada aqui sai idêntica à do
 // Supabase.
+//
+// Catch-all OBRIGATÓRIO, não opcional: medido, com [[...rota]] a Vercel casava
+// /api/oab-api/busca e devolvia 404 em /api/oab-api/recentes/habeas_corpus —
+// duas das quatro rotas ficavam fora do ar.
 // ============================================================================
 
 var __defProp = Object.defineProperty;
