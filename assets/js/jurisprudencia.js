@@ -147,7 +147,10 @@ function cartao(item, radicais, rotuloRecurso) {
 
         <div class="bloco-teor mb-2">
           <span class="titulo">Trecho do acórdão</span>
-          <p class="cortada">${grifar(trecho(item.inteiro_teor), radicais)}</p>
+          ${item.inteiro_teor
+            ? `<p class="cortada">${grifar(trecho(item.inteiro_teor), radicais)}</p>`
+            : `<p class="sem-texto">Texto integral não disponível — o acórdão não está no
+                índice de jurisprudência do tribunal.</p>`}
         </div>
 
         <div style="font-size:.85rem">
@@ -201,9 +204,9 @@ function cartao(item, radicais, rotuloRecurso) {
       div.innerHTML = grifar(texto, radicais);
       bTeor.innerHTML = '<i class="fas fa-compress-alt me-1"></i> Recolher';
     } else {
-      // Defensivo: a API não entrega item sem teor (os 24 acórdãos do acervo
-      // que não têm o texto guardado são descartados lá). Se um dia entregar,
-      // o card diz o que houve em vez de abrir uma caixa vazia.
+      // 4 acórdãos do acervo (de 21.493) não têm o texto: o TJES não os
+      // devolve em nenhum core da API de jurisprudência. Eles continuam na
+      // lista, com os metadados que existem, e dizem o que houve.
       div.className = "aviso-motor mt-3";
       div.textContent = "O inteiro teor deste acórdão não está disponível no acervo.";
     }
