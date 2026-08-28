@@ -57,6 +57,13 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
   border-radius:.75rem;
 }
 .rotulo{font-size:.75rem;font-weight:700;color:var(--oab-texto);margin-bottom:.25rem;display:block}
+/* A separação por câmara no seletor de desembargador: rótulo pequeno e
+   apagado, nome em peso normal. O <optgroup> nativo vem em negrito-itálico por
+   padrão, que grita mais que os próprios nomes. */
+.form-select optgroup{font-style:normal;font-weight:700;font-size:.72rem;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--oab-texto-3)}
+.form-select optgroup option{font-weight:400;font-size:1rem;
+  letter-spacing:normal;text-transform:none;color:var(--oab-texto)}
 /* As duas pontas do período lado a lado, com o "até" entre elas. O `min-width:0`
    é o que impede os dois <input type="date"> de estourarem a coluna: o campo
    de data tem largura intrínseca grande e o flex respeita isso por padrão. */

@@ -129,7 +129,11 @@ contagens do acervo.
 - **200 resultados por pesquisa** (10 páginas de 20); além disso, refine os
   filtros.
 - **Tipo de recurso é obrigatório** — uma pesquisa não cruza recursos.
-- Assunto, comarca, câmara e magistrado aceitam **um valor cada**.
+- Assunto, comarca, câmara e desembargador aceitam **um valor cada**.
+- O `/vocabulario` devolve o desembargador como `{nome, camaras}` — as câmaras
+  em que ele **tem acórdão**, que é como o seletor da página se separa. É lista
+  e não valor único porque de 5 a 9 desembargadores por recurso julgam nas
+  duas; a página junta esses num terceiro grupo.
 - **Período é opcional.** Em branco, a busca é a mesma de sempre. Preenchido,
   vai em `AAAA-MM-DD`, com as duas pontas inclusivas e qualquer uma delas
   sozinha ("de tal data em diante", "até tal data"). O `/vocabulario` devolve
@@ -148,6 +152,7 @@ contagens do acervo.
 | texto de rótulo ou aviso | `index.html` e `assets/js/jurisprudencia.js` |
 | endereço do BFF | a `<meta name="oabjus-bff">` no `<head>` das duas páginas |
 | o que aparece no cartão | função `cartao()` em `assets/js/jurisprudencia.js` |
+| os grupos do seletor de desembargador | função `encherMagistrados()` no mesmo arquivo |
 | a página do acórdão | `acordao.html` e `assets/js/acordao.js` |
 
 ---

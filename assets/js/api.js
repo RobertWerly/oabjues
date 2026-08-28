@@ -249,7 +249,13 @@ async function demoVocabulario() {
   await pausa(120);
   return {
     camara: ["1ª Câmara Criminal", "2ª Câmara Criminal"],
-    magistrado: [...new Set(DEMO_ITENS.map((i) => i.magistrado))].sort(),
+    // Mesmo formato da API: nome + as câmaras em que ele tem acórdão. O
+    // primeiro desembargador fictício aparece nas duas, de propósito — é o
+    // caso que existe no acervo e que o seletor precisa saber desenhar.
+    magistrado: [...new Set(DEMO_ITENS.map((i) => i.magistrado))].sort().map((nome) => ({
+      nome,
+      camaras: [...new Set(DEMO_ITENS.filter((i) => i.magistrado === nome).map((i) => i.camara))].sort(),
+    })),
     assunto: [...new Set(DEMO_ITENS.map((i) => i.assunto))].sort(),
     comarca: [
       { id: "vitoria", nome: "Vitória" },
