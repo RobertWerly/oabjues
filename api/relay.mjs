@@ -838,7 +838,8 @@ async function comTeores(itens) {
 function contagem(bruto) {
   const n = Number(bruto);
   if (!Number.isFinite(n) || n < 0) return {};
-  return { total: n, paginas: Math.min(Math.ceil(n / POR_PAGINA), PAGINA_MAX) };
+  const entregues = Math.min(n, PAGINA_MAX * POR_PAGINA);
+  return { total: entregues, paginas: Math.ceil(entregues / POR_PAGINA) };
 }
 async function estourouTeto(chave) {
   if (TETO_DOCS_DIA <= 0) return false;
