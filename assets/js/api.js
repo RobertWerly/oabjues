@@ -100,8 +100,9 @@ export async function vocabulario(recurso) {
   return chamar("vocabulario", { recurso });
 }
 
-/** As últimas jurisprudências da janela que o SERVIDOR define — a página não
- *  pede intervalo, e não tem como pedir: não há chave de data no contrato. */
+/** As últimas jurisprudências da janela que o SERVIDOR define. O intervalo de
+ *  datas existe em /busca e NÃO existe aqui: a rota recusa `dataInicio` e
+ *  `dataFim`, para a janela dos 7 dias não poder ser trocada em trânsito. */
 export async function recentes(recurso, pagina = 1) {
   if (DEMO) return demoRecentes(recurso, pagina);
   // O recurso vai no CAMINHO porque a assinatura cobre a rota e não a query:
@@ -196,6 +197,10 @@ async function demoBuscar(pedido) {
   let itens = DEMO_ITENS;
   if (pedido.camara) itens = itens.filter((i) => i.camara === pedido.camara);
   if (pedido.magistrado) itens = itens.filter((i) => i.magistrado === pedido.magistrado);
+  // O período com as duas pontas inclusivas, como no motor. Comparação de
+  // string basta porque as datas são ISO — é a mesma ordem.
+  if (pedido.dataInicio) itens = itens.filter((i) => i.data >= pedido.dataInicio);
+  if (pedido.dataFim) itens = itens.filter((i) => i.data <= pedido.dataFim);
   if (termo) {
     itens = itens.filter((i) => i.inteiro_teor.toLowerCase().includes(termo.split(/\s+/)[0]));
   }
@@ -251,5 +256,11 @@ async function demoVocabulario() {
       { id: "vila-velha", nome: "Vila Velha" },
       { id: "serra", nome: "Serra" },
     ],
+    // As bordas do calendário. Na API de verdade vêm do acórdão mais antigo e
+    // do mais novo do recurso escolhido; aqui, dos próprios itens fictícios.
+    periodo: {
+      min: DEMO_ITENS.map((i) => i.data).sort()[0],
+      max: DEMO_ITENS.map((i) => i.data).sort().at(-1),
+    },
   };
 }

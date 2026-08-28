@@ -57,6 +57,13 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
   border-radius:.75rem;
 }
 .rotulo{font-size:.75rem;font-weight:700;color:var(--oab-texto);margin-bottom:.25rem;display:block}
+/* As duas pontas do período lado a lado, com o "até" entre elas. O `min-width:0`
+   é o que impede os dois <input type="date"> de estourarem a coluna: o campo
+   de data tem largura intrínseca grande e o flex respeita isso por padrão. */
+.periodo{display:flex;align-items:center;gap:.4rem}
+.periodo input{min-width:0;flex:1 1 0}
+.periodo span{font-size:.75rem;color:var(--oab-texto-3);flex:0 0 auto}
+.dica{display:block;margin-top:.25rem;font-size:.72rem;color:var(--oab-texto-3)}
 .form-control,.form-select{
   background:var(--oab-superficie);border-color:var(--oab-borda);color:var(--oab-texto);
   font-weight:500;

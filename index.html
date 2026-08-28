@@ -57,7 +57,7 @@
   <h1 class="fw-bolder fonte-titulo mb-1" style="font-size:1.75rem">Busca de jurisprudência criminal</h1>
   <p class="mb-3" style="font-size:.9rem;color:var(--oab-texto-2)">
     Base oficial do Tribunal de Justiça do Espírito Santo. Consulte acórdãos de
-    mérito por termo, assunto, câmara e comarca.
+    mérito por termo, assunto, câmara, comarca e período.
   </p>
 
   <div class="aviso-motor mb-3" id="aviso-demo" hidden>
@@ -96,17 +96,32 @@
       </div>
 
       <div class="row g-3">
-        <div class="col-12 col-sm-4">
+        <div class="col-12 col-sm-6 col-lg-3">
           <label class="rotulo" for="recurso">Tipo de recurso</label>
           <select class="form-select" id="recurso" required></select>
         </div>
-        <div class="col-12 col-sm-4">
+        <div class="col-12 col-sm-6 col-lg-3">
           <label class="rotulo" for="assunto">Assunto</label>
           <select class="form-select" id="assunto"><option value="">Todos</option></select>
         </div>
-        <div class="col-12 col-sm-4">
+        <div class="col-12 col-sm-6 col-lg-3">
           <label class="rotulo" for="comarca">Jurisdição / Comarca</label>
           <select class="form-select" id="comarca"><option value="">Todas</option></select>
+        </div>
+        <!-- Período: OPCIONAL. Em branco, a busca é a mesma de sempre — o
+             intervalo não vira filtro nenhum. `min` e `max` são preenchidos
+             pelo vocabulário com o acórdão mais antigo e o mais novo DO
+             RECURSO escolhido, e mudam quando o recurso muda. -->
+        <div class="col-12 col-lg-3">
+          <label class="rotulo" for="data-inicio">Período de julgamento</label>
+          <div class="periodo">
+            <input type="date" class="form-control" id="data-inicio"
+                   aria-label="Julgados a partir de" title="Julgados a partir de">
+            <span aria-hidden="true">até</span>
+            <input type="date" class="form-control" id="data-fim"
+                   aria-label="Julgados até" title="Julgados até">
+          </div>
+          <small class="dica" id="dica-periodo"></small>
         </div>
       </div>
 

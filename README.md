@@ -122,7 +122,7 @@ contagens do acervo.
 | `POST` | `/busca` | resultados da pesquisa |
 | `GET` | `/recentes/{recurso}` | os últimos acórdãos (7 dias) |
 | `GET` | `/acordao/{id}` | um acórdão, com inteiro teor |
-| `GET` | `/vocabulario?recurso={recurso}` | valores aceitos pelos filtros |
+| `GET` | `/vocabulario?recurso={recurso}` | valores aceitos pelos filtros e as bordas do período |
 
 ### Limites
 
@@ -130,7 +130,12 @@ contagens do acervo.
   filtros.
 - **Tipo de recurso é obrigatório** — uma pesquisa não cruza recursos.
 - Assunto, comarca, câmara e magistrado aceitam **um valor cada**.
-- Sem filtro por período; a lista de últimos acórdãos usa janela de 7 dias
+- **Período é opcional.** Em branco, a busca é a mesma de sempre. Preenchido,
+  vai em `AAAA-MM-DD`, com as duas pontas inclusivas e qualquer uma delas
+  sozinha ("de tal data em diante", "até tal data"). O `/vocabulario` devolve
+  `periodo: {min, max}` — o acórdão mais antigo e o mais novo **do recurso
+  escolhido**, que é o que a página usa como borda do calendário.
+- A lista de últimos acórdãos **não** aceita período: a janela de 7 dias é
   fixada pelo servidor.
 
 ---

@@ -282,6 +282,13 @@ function montarPedido(n) {
   if (q) p.q = q;
   if (camara) p.camara = camara;
   for (const c of ["assunto", "comarca"]) if ($(c).value) p[c] = $(c).value;
+  // Período em branco não vira chave. Mandar `dataInicio: ""` seria pior que
+  // não mandar: no motor a string vazia vira NULL pelo `nullif` e o filtro
+  // some — o pedido pareceria ter intervalo e não teria. Sem data, o pedido
+  // sai exatamente como saía antes deste campo existir.
+  const ini = $("data-inicio").value, fim = $("data-fim").value;
+  if (ini) p.dataInicio = ini;
+  if (fim) p.dataFim = fim;
   return p;
 }
 
@@ -356,6 +363,39 @@ function encher(sel, valores, vazio) {
   if ([...sel.options].some((o) => o.value === atual)) sel.value = atual;
 }
 
+/**
+ * As bordas do calendário — o acórdão mais antigo e o mais novo DO RECURSO.
+ *
+ * É por recurso e não do acervo porque as classes não cobrem o mesmo tempo
+ * (medido: habeas corpus começa em 27/01/2022; apelação, só em 09/01/2024).
+ * Uma borda única ofereceria a quem busca apelação dois anos inteiros em que
+ * não existe uma única apelação para achar.
+ *
+ * Trocar o recurso pode deixar uma data escolhida fora da borda nova. Nesse
+ * caso ela é apagada e o advogado é avisado — deixá-la travaria o formulário
+ * na validação do navegador, com uma bolha nativa que não explica nada.
+ */
+function aplicarPeriodo(periodo) {
+  const ini = $("data-inicio"), fim = $("data-fim");
+  const min = periodo?.min ?? "", max = periodo?.max ?? "";
+  let apagou = false;
+  for (const el of [ini, fim]) {
+    if (min) el.min = min; else el.removeAttribute("min");
+    if (max) el.max = max; else el.removeAttribute("max");
+    if (el.value && min && max && (el.value < min || el.value > max)) {
+      el.value = "";
+      apagou = true;
+    }
+  }
+  $("dica-periodo").textContent = min && max
+    ? `Acórdãos de ${dataBr(min)} a ${dataBr(max)}`
+    : "";
+  if (apagou) {
+    nota(`<i class="fas fa-calendar-alt me-1"></i> O período foi limpo: este tipo
+      de recurso só tem acórdãos entre ${esc(dataBr(min))} e ${esc(dataBr(max))}.`);
+  }
+}
+
 async function carregarVocabulario() {
   // Sem isto, assunto e comarca viram caixa de texto onde qualquer valor
   // devolve zero em silêncio — a comarca se disca por id, não por nome.
@@ -363,6 +403,7 @@ async function carregarVocabulario() {
     const v = await vocabulario($("recurso").value);
     encher($("assunto"), v.assunto, "Todos");
     encher($("comarca"), v.comarca, "Todas");
+    aplicarPeriodo(v.periodo);
   } catch {
     // O elemento da nota não existe mais; o aviso vai para a área de mensagens.
     nota('<i class="fas fa-info-circle me-1"></i> Não foi possível carregar as opções de filtro. A busca por texto continua funcionando.');
@@ -385,8 +426,9 @@ $("limpar").addEventListener("click", () => {
   $("rotulo-pagina").textContent = "";
   paginacao.hidden = true;
   estadoVazio({ inicial: true });
-  estadoVazio({ inicial: true });
-carregarVocabulario();
+  // Repõe as bordas do calendário: `form.reset()` devolve o recurso ao
+  // primeiro da lista, e as bordas são por recurso.
+  carregarVocabulario();
 });
 $("anterior").addEventListener("click", () => executar(Math.max(1, pagina - 1)));
 $("proxima").addEventListener("click", () => executar(Math.min(PAGINA_MAX, pagina + 1)));
