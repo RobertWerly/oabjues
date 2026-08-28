@@ -57,14 +57,19 @@ function rotuloPagina(n, r) {
   return r?.paginas > 0 ? `Página ${n} de ${r.paginas}` : `Página ${n}`;
 }
 
-/** Quantos a pesquisa achou, e o aviso quando há mais do que cabe entregar. */
+/**
+ * Quantos acórdãos a resposta contém.
+ *
+ * É o número entregue, não o do acervo: no teto dá 200, abaixo dele dá o que
+ * for. A API já entrega assim — o tamanho da fatia do acervo não sai de lá,
+ * porque repetir a pergunta variando o filtro transformaria isso num mapa do
+ * que existe.
+ */
 function rotuloTotal(r) {
   if (!(r?.total >= 0)) {
     return `${r.itens.length} ${r.itens.length === 1 ? "decisão" : "decisões"} nesta página`;
   }
-  const teto = PAGINA_MAX * POR_PAGINA;
-  const achados = `${NUM.format(r.total)} ${r.total === 1 ? "acórdão" : "acórdãos"}`;
-  return r.total > teto ? `${achados} — mostrando os ${NUM.format(teto)} primeiros` : achados;
+  return `${NUM.format(r.total)} ${r.total === 1 ? "acórdão" : "acórdãos"}`;
 }
 
 function nota(html, classe = "aviso-motor") {
@@ -219,7 +224,7 @@ async function carregarRecentes(n = 1) {
     const cabecalho = `
       <div class="cabecalho-recentes d-flex align-items-baseline justify-content-between flex-wrap gap-2">
         <h2>Últimos acórdãos (${r.dias ?? 7} dias) — ${esc(rotulo)}</h2>
-        <span class="desde">${r.total >= 0 ? `${NUM.format(r.total)} no período` : ""}${
+        <span class="desde">${r.total >= 0 ? `${NUM.format(r.total)} ${r.total === 1 ? "acórdão" : "acórdãos"}` : ""}${
           r.total >= 0 && r.desde ? " · " : ""}${r.desde ? `desde ${dataCurta(r.desde)}` : ""}</span>
       </div>`;
     if (!r.itens?.length) {

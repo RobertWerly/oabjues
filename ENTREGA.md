@@ -140,8 +140,9 @@ Por acórdão: **número do processo, data de julgamento, magistrado, câmara,
 assunto, resultado e o inteiro teor** — o texto do tribunal, verbatim, já na
 listagem. Abrir o acórdão não custa uma segunda requisição.
 
-Vem também **quantos acórdãos a pesquisa achou** e **em quantas páginas eles
-cabem**, para a paginação poder dizer "página 3 de 7".
+Vem também **quantos acórdãos a resposta contém** e **em quantas páginas eles
+cabem**, para a paginação poder dizer "página 3 de 7". É o número entregue,
+capado no teto de 200 — nunca o tamanho da fatia do acervo.
 
 O assunto é o **canônico**: é o mesmo valor que o filtro oferece e o mesmo que
 o JurimetriaES mostra. O campo cru do tribunal mistura nível (traz "Estelionato
