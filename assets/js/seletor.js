@@ -57,6 +57,14 @@ export function comBusca(select, { placeholder = "Buscar…" } = {}) {
     select.parentNode.insertBefore(caixa, select);
     caixa.appendChild(select);
     select.classList.add("seletor-nativo");
+    // Fora da navegação por teclado E fora do leitor de tela.
+    //
+    // `opacity:0` esconde do olho mas NÃO esconde da tecnologia assistiva —
+    // ao contrário de display:none, que esconderia dos dois e cancelaria a
+    // validação nativa de campo required. Sem isto, quem usa leitor ouviria o
+    // mesmo campo duas vezes: uma no <select> invisível, outra na caixa.
+    select.setAttribute("aria-hidden", "true");
+    select.tabIndex = -1;
 
     caixa.insertAdjacentHTML("beforeend", `
       <button type="button" class="form-select seletor-gatilho" aria-haspopup="listbox" aria-expanded="false">
@@ -67,6 +75,18 @@ export function comBusca(select, { placeholder = "Buscar…" } = {}) {
         <ul class="seletor-lista" role="listbox"></ul>
         <p class="seletor-vazio" hidden>Nada encontrado</p>
       </div>`);
+
+    // O <label for="assunto"> apontava para o <select>, que agora está oculto
+    // para a AT. O rótulo passa a nomear o botão, senão a caixa fica sem nome.
+    const rotulo = select.id
+      ? document.querySelector(`label[for="${CSS.escape(select.id)}"]`)
+      : null;
+    if (rotulo) {
+      if (!rotulo.id) rotulo.id = `rotulo-${select.id}`;
+      caixa.querySelector(".seletor-gatilho").setAttribute("aria-labelledby", rotulo.id);
+      caixa.querySelector(".seletor-busca")
+           .setAttribute("aria-label", `Buscar em ${rotulo.textContent.trim()}`);
+    }
 
     select.__caixa = caixa;
     ligar(select, caixa);
