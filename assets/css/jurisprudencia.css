@@ -481,3 +481,10 @@ mark{background:var(--oab-grifo);color:inherit;padding:0 .15em;border-radius:2px
   margin:.6rem 0 0;font-size:.78rem;color:var(--oab-texto-3);line-height:1.5;
 }
 .aviso-privacidade a{color:var(--oab-azul);font-weight:600}
+
+.aviso-janela{
+  border-left:3px solid var(--oab-azul);background:var(--oab-fundo);
+  border-radius:0 8px 8px 0;padding:.65rem .8rem;font-size:.85rem;
+  color:var(--oab-texto-2);margin-bottom:.75rem;
+}
+.aviso-janela strong{color:var(--oab-texto)}

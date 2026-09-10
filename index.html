@@ -19,7 +19,8 @@
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700|Roboto:300,400,500,700&display=swap">
 <link rel="stylesheet" href="/assets/css/jurisprudencia.css">
-<link rel="icon" href="/public/logos/oab.png">
+<link rel="icon" href="/public/logos/favicon.png" sizes="any">
+<link rel="apple-touch-icon" href="/public/logos/apple-touch-icon.png">
 
 <!-- Onde o BFF está publicado. Descomente e ajuste ao embutir a página numa
      rota do portal — sem isto o caminho é relativo à página, e numa subpasta
@@ -66,12 +67,21 @@
   <section class="painel p-3 p-sm-4 mb-3" id="portao" aria-label="Identificação do advogado" hidden>
     <h2 class="fw-bolder fonte-titulo mb-1" style="font-size:1.15rem">Identificação do advogado</h2>
     <p class="mb-3" style="font-size:.9rem;color:var(--oab-texto-2)">
-      Informe sua inscrição na OAB para usar a busca. Não há cadastro nem senha —
-      a identificação serve às estatísticas de uso da OAB/ES.
+      Informe <strong>CPF e número de inscrição</strong> para usar a busca. Os dois
+      são conferidos juntos na base da OAB/ES. Não há cadastro nem senha, e o
+      <strong>CPF não é guardado</strong> — ele é só confrontado e descartado.
     </p>
 
     <form id="form-identificacao">
       <div class="row g-3 align-items-start">
+        <div class="col-12 col-sm-4">
+          <label class="rotulo" for="cpf">CPF</label>
+          <!-- `autocomplete="off"`: CPF não pode ficar no preenchimento
+               automático do navegador de um computador compartilhado. -->
+          <input type="text" class="form-control" id="cpf" inputmode="numeric"
+                 autocomplete="off" placeholder="000.000.000-00" maxlength="14" required>
+          <small class="dica">Só seu, e não fica guardado.</small>
+        </div>
         <div class="col-12 col-sm-4">
           <label class="rotulo" for="inscricao">Número da OAB</label>
           <input type="text" class="form-control" id="inscricao" inputmode="numeric"
@@ -82,7 +92,7 @@
           <label class="rotulo" for="seccional">Seccional</label>
           <select class="form-select" id="seccional"></select>
         </div>
-        <div class="col-12 col-sm-4">
+        <div class="col-12 col-sm-8">
           <label class="rotulo" for="nome-advogado">Nome <span style="font-weight:400;color:var(--oab-texto-3)">(opcional)</span></label>
           <input type="text" class="form-control" id="nome-advogado" autocomplete="name">
         </div>
@@ -92,10 +102,11 @@
 
       <div class="aviso-motor mt-3" style="font-size:.82rem">
         <strong>Uso dos dados.</strong> Registramos número de inscrição, seccional e,
-        se informado, o nome, junto com os dados de cada consulta. A finalidade é
-        exclusivamente estatística — acompanhar o uso da ferramenta pela advocacia
-        capixaba. O endereço IP é guardado apenas como código embaralhado, para
-        conter abuso, e não é possível voltar dele ao endereço.
+        se informado, o nome. <strong>O CPF não é registrado</strong>: ele é comparado
+        com o código embaralhado que a OAB/ES já tem e descartado na mesma
+        chamada — não existe coluna de CPF no nosso banco. A finalidade é
+        exclusivamente estatística. O endereço IP também só é guardado
+        embaralhado, para conter abuso.
       </div>
 
       <div class="d-flex justify-content-end pt-3 mt-3"
@@ -185,7 +196,7 @@
                classe — habeas corpus é concedido, apelação é provida, revisão
                é procedente. -->
           <label class="interruptor">
-            <input type="checkbox" id="so-favoravel">
+            <input type="checkbox" id="so-favoravel" autocomplete="off">
             <span class="ponto" aria-hidden="true"></span>
             <span class="rotulo-interruptor" id="rotulo-favoravel">Só concedidas</span>
           </label>

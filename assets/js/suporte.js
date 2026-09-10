@@ -64,11 +64,14 @@ const ARVORE = {
   },
 
   entrar: {
-    fala: `A conferência é feita na hora, contra a base do convênio OAB/ES —
+    fala: `A conferência é de <strong>CPF e inscrição juntos</strong>, feita na hora
+           contra a base do convênio OAB/ES —
            por isso ela é pedida em toda visita, e nada fica guardado no seu
            navegador. O que apareceu?`,
     saidas: [
       ['"não consta da base da OAB/ES"', "naoconsta"],
+      ['"O CPF não confere"', "cpfnaoconfere"],
+      ["Não temos o CPF desta inscrição", "semcpfnabase"],
       ["Sou de outra seccional", "outrasec"],
       ["Disse que foram muitas tentativas", "tentativas"],
       ["Outra coisa", "humano"],
@@ -82,6 +85,22 @@ const ARVORE = {
            convênio pode estar desatualizada para a sua inscrição: quem
            resolve isso é a OAB/ES, e o JUES ajuda a apurar.`,
     saidas: [["Falar com alguém", "humano"], ["Voltar ao início", "inicio"]],
+  },
+  cpfnaoconfere: {
+    fala: `O número da inscrição foi encontrado, mas o CPF informado não é o que
+           a OAB/ES tem vinculado a ele. Confira os dois — um dígito trocado em
+           qualquer um dos dois campos dá nisso.
+           <br><br>Se os dois estão certos, o vínculo na base do convênio pode
+           estar desatualizado.`,
+    saidas: [["Continua não conferindo", "humano"], ["Voltar ao início", "inicio"]],
+  },
+  semcpfnabase: {
+    fala: `Quer dizer que a base do convênio tem a sua inscrição, mas não tem o
+           CPF vinculado a ela — são 28 casos em pouco mais de 30 mil. Não dá
+           para conferir os dois juntos, e liberar sem conferir transformaria
+           esses números em porta aberta.
+           <br><br>O suporte resolve caso a caso.`,
+    saidas: [["Falar com o suporte", "humano"], ["Voltar ao início", "inicio"]],
   },
   outrasec: {
     fala: `Hoje só conseguimos conferir inscrições da <strong>seccional do
@@ -138,7 +157,9 @@ const ARVORE = {
 
   dados: {
     fala: `Inscrição, seccional, o nome se você informar, e um <strong>hash</strong>
-           do seu IP — nunca o IP em si. Do texto que você digita fica só um hash,
+           do seu IP — nunca o IP em si. <strong>O CPF não é guardado</strong>: ele é
+           comparado com o código que a OAB/ES já tem e descartado na mesma chamada.
+           Não existe coluna de CPF no banco. Do texto que você digita fica só um hash,
            não a pergunta.
            <br><br>A busca <strong>não fica ligada a você</strong>: identificação e
            registro de uso ficam em tabelas separadas, e o registro de uso não guarda

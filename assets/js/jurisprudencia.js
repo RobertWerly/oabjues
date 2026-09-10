@@ -310,6 +310,21 @@ async function carregarRecentes(n = 1) {
   }
 }
 
+/** Dias atrás, em ISO — o formato que o contrato exige. */
+function diasAtras(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** A janela de quem não pediu nada. É a mesma dos "últimos acórdãos" que a
+ *  tela inicial já mostra, para as duas telas falarem do mesmo período. */
+export const DIAS_PADRAO = 7;
+
+/** Quantos dias a última busca cobriu por conta própria, ou 0 se o advogado
+ *  escolheu o recorte. Lido por `executar` para escrever o aviso. */
+let janelaImplicita = 0;
+
 function montarPedido(n) {
   const p = { recurso: $("recurso").value, pagina: n };
   const q = $("q").value.trim();
@@ -326,6 +341,24 @@ function montarPedido(n) {
   const ini = $("data-inicio").value, fim = $("data-fim").value;
   if (ini) p.dataInicio = ini;
   if (fim) p.dataFim = fim;
+
+  // ── SEM TERMO E SEM FILTRO: OS ÚLTIMOS 7 DIAS, DITOS EM VOZ ALTA ────────
+  //
+  // Antes, buscar com a caixa vazia mandava um pedido sem recorte nenhum. O
+  // motor devolve do mais novo para o mais velho e a página corta em 200, então
+  // o resultado PARECIA "os últimos dias" — mas era só o topo de uma lista de
+  // milhares, e o corte caía onde calhasse. Ligar "só concedidas" e ver 200
+  // acórdãos recentes dava a impressão de um recorte que ninguém tinha pedido.
+  //
+  // Agora o recorte existe de verdade e é o mesmo da tela inicial: 7 dias. O
+  // aviso em `executar` diz qual é, e o botão limpa em um clique. Quem digita
+  // termo ou escolhe qualquer filtro sai desta regra e pesquisa o acervo
+  // inteiro — a janela é o padrão de quem não pediu nada, não uma trava.
+  const escolheu = q || camara || ini || fim
+    || ["assunto", "comarca", "magistrado"].some((c) => $(c).value);
+  janelaImplicita = escolheu ? 0 : DIAS_PADRAO;
+  if (janelaImplicita) p.dataInicio = diasAtras(janelaImplicita);
+
   return p;
 }
 
@@ -352,8 +385,26 @@ async function executar(n) {
 
     if (!r.itens?.length) {
       estadoVazio({ inicial: false });
+      if (janelaImplicita) {
+        nota(`<i class="far fa-calendar-times me-1"></i> Nenhum acórdão nos
+          <strong>últimos ${janelaImplicita} dias</strong>. Digite um termo ou
+          escolha um filtro para pesquisar o acervo inteiro.`, "aviso-janela");
+      }
       $("rotulo-pagina").textContent = "";
       return;
+    }
+
+    // O aviso da janela vem ANTES dos cartões e é a primeira coisa lida: o
+    // recorte foi decisão da página, não do advogado, então ela tem que dizer.
+    if (janelaImplicita) {
+      const so = $("so-favoravel").checked
+        ? ` <strong>${esc(($("rotulo-favoravel").textContent || "").replace(/^Só\s*/i, "").trim())}</strong>`
+        : "";
+      nota(`<i class="far fa-calendar-alt me-1"></i> Sem termo e sem filtro, esta
+        busca mostra <strong>todos os acórdãos${so} dos últimos
+        ${janelaImplicita} dias</strong> — de ${dataCurta(diasAtras(janelaImplicita))}
+        até hoje. Digite um termo ou escolha um filtro para pesquisar o acervo
+        inteiro.`, "aviso-janela");
     }
 
     lista.dataset.estado = "lista";
@@ -607,14 +658,15 @@ async function tentarIdentificar(e) {
   e.preventDefault();
   const botao = $("entrar");
   const inscricao = $("inscricao").value.trim();
+  const cpf = $("cpf").value.trim();
   const seccional = $("seccional").value;
   const nome = $("nome-advogado").value.trim();
-  if (!inscricao) return;
+  if (!inscricao || !cpf) return;
 
   botao.disabled = true;
   $("erro-identificacao").innerHTML = "";
   try {
-    const r = await identificar({ inscricao, seccional, nome });
+    const r = await identificar({ inscricao, cpf, seccional, nome });
     switch (r.veredito) {
       case "valido":
         // Abre e pronto. Nada é gravado: a próxima visita pergunta de novo.
@@ -624,6 +676,13 @@ async function tentarIdentificar(e) {
         // <select> que a página acabou de encher — o texto fala do acervo
         // real, e não de um número escrito à mão que envelhece sozinho.
         abrirConvite({ recursos: $("recurso").options.length });
+        return;
+      case "cpf_nao_confere":
+        // Dito com todas as letras, e não como "não consta": quem errou um
+        // dígito do próprio CPF procuraria erro no número da OAB.
+        notaPortao(`<i class="fas fa-times-circle me-1"></i> O <strong>CPF não
+          confere</strong> com a inscrição <strong>${esc(r.inscricao ?? inscricao)}</strong>
+          na base da OAB/${esc(r.seccional ?? seccional)}. Confira os dois números.`);
         return;
       case "nao_encontrado":
         notaPortao(`<i class="fas fa-times-circle me-1"></i> A inscrição
@@ -639,7 +698,15 @@ async function tentarIdentificar(e) {
     // para conferir. Isto JÁ FOI passagem, e era um furo: com {"seccional":"SP"}
     // qualquer número inventado abria a porta. Agora recusa, e diz a verdade —
     // "não existe" seria mentira, "não consigo conferir" é o que aconteceu.
-    if (err instanceof ErroApi && err.status === 422) {
+    if (err instanceof ErroApi && err.status === 422 && err.veredito === "sem_cpf_na_base") {
+      // A base do convênio não tem o CPF DESTA inscrição — 28 das 30.089 do
+      // ES. Não é erro de quem digitou, e não abre a porta: liberar sem
+      // conferir transformaria essas 28 em números que entram com qualquer
+      // CPF, e a inscrição é dado público.
+      notaPortao(`<i class="fas fa-circle-info me-1"></i> A base da OAB/ES não tem
+        o CPF vinculado a esta inscrição, então não conseguimos conferir os dois
+        juntos. <a href="/suporte">Fale com o suporte</a> para liberar seu acesso.`);
+    } else if (err instanceof ErroApi && err.status === 422) {
       notaPortao(`<i class="fas fa-circle-info me-1"></i> Só conseguimos conferir
         inscrições da seccional do Espírito Santo. Se a sua é de outra seccional,
         fale com a OAB/ES.`);
@@ -647,7 +714,11 @@ async function tentarIdentificar(e) {
       notaPortao(`<i class="fas fa-hourglass-half me-1"></i> Muitas tentativas
         seguidas deste dispositivo. Espere alguns minutos e tente de novo.`);
     } else if (err instanceof ErroApi && err.status === 400) {
-      notaPortao('<i class="fas fa-times-circle me-1"></i> Informe um número de inscrição válido — somente números.');
+      // A API diz QUAL campo caiu; repetir isso é a diferença entre corrigir
+      // em um toque e conferir os dois campos no escuro.
+      notaPortao(err.campo === "cpf"
+        ? '<i class="fas fa-times-circle me-1"></i> <strong>CPF inválido.</strong> Confira os números digitados.'
+        : '<i class="fas fa-times-circle me-1"></i> Informe um número de inscrição válido — somente números.');
     } else {
       notaPortao('<i class="fas fa-plug me-1"></i> Não foi possível conferir a inscrição agora. Tente de novo em instantes.');
     }
@@ -655,6 +726,16 @@ async function tentarIdentificar(e) {
     botao.disabled = false;
   }
 }
+
+/** Máscara enquanto digita. Só formatação: o que vai para a API são os
+ *  dígitos, e quem confere os verificadores é o contrato do outro lado. */
+$("cpf").addEventListener("input", (e) => {
+  const d = e.target.value.replace(/\D+/g, "").slice(0, 11);
+  e.target.value = d
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
+});
 
 $("form-identificacao").addEventListener("submit", tentarIdentificar);
 

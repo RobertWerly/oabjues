@@ -50,10 +50,14 @@ export const POR_PAGINA = 20;
 export const PAGINA_MAX = 10;
 
 export class ErroApi extends Error {
-  constructor(mensagem, status, campo) {
+  constructor(mensagem, status, campo, veredito) {
     super(mensagem);
     this.status = status;
     this.campo = campo;
+    // O veredito vem no corpo mesmo quando o status é de erro (422 de
+    // `sem_base` e de `sem_cpf_na_base` são casos diferentes com o mesmo
+    // número). Sem ele, a porta teria que adivinhar qual dos dois foi.
+    this.veredito = veredito;
   }
 }
 
@@ -77,7 +81,7 @@ async function chamar(rota, params = {}, opcoes = {}) {
   let corpo = null;
   try { corpo = await r.json(); } catch { /* resposta sem JSON */ }
   if (!r.ok) {
-    throw new ErroApi(corpo?.erro ?? `erro ${r.status}`, r.status, corpo?.campo);
+    throw new ErroApi(corpo?.erro ?? `erro ${r.status}`, r.status, corpo?.campo, corpo?.veredito);
   }
   return corpo ?? {};
 }
@@ -101,12 +105,15 @@ export async function buscar(pedido) {
  * Vereditos: `valido` · `nao_encontrado` · `sem_base` (não temos a base
  * daquela seccional) · `inscricao_invalida` (400) · `muitas_tentativas` (429).
  */
-export async function identificar({ inscricao, seccional, nome }) {
-  if (DEMO) return demoIdentificar(inscricao);
+export async function identificar({ inscricao, cpf, seccional, nome }) {
+  if (DEMO) return demoIdentificar(inscricao, cpf);
   return chamar("identificar", {}, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ inscricao, seccional, nome: nome || null }),
+    // O CPF vai no CORPO de um POST, nunca em query string: query string
+    // entra no histórico do navegador, no Referer e no log de qualquer proxy
+    // no caminho. O corpo, não.
+    body: JSON.stringify({ inscricao, cpf, seccional, nome: nome || null }),
   });
 }
 
@@ -247,15 +254,19 @@ async function demoBuscar(pedido) {
   };
 }
 
-async function demoIdentificar(inscricao) {
+async function demoIdentificar(inscricao, cpf) {
   await pausa(300);
   // Na demonstração, número par vale e ímpar não — para as duas telas
-  // aparecerem sem depender da base de verdade.
+  // aparecerem sem depender da base de verdade. O CPF entra na conta para o
+  // caminho de "não confere" também ser demonstrável: CPF terminado em 0
+  // diverge.
   const n = parseInt(String(inscricao).replace(/\D/g, ""), 10);
   if (!Number.isFinite(n)) return { veredito: "inscricao_invalida" };
-  return n % 2 === 0
-    ? { veredito: "valido", inscricao: String(n), seccional: "ES" }
-    : { veredito: "nao_encontrado", inscricao: String(n), seccional: "ES" };
+  const d = String(cpf ?? "").replace(/\D/g, "");
+  if (d.length !== 11) return { veredito: "inscricao_invalida" };
+  if (n % 2 !== 0) return { veredito: "nao_encontrado", inscricao: String(n), seccional: "ES" };
+  if (d.endsWith("0")) return { veredito: "cpf_nao_confere", inscricao: String(n), seccional: "ES" };
+  return { veredito: "valido", inscricao: String(n), seccional: "ES" };
 }
 
 async function demoAcordao(id) {

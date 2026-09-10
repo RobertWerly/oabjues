@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700|Roboto:300,400,500,700&display=swap">
 <link rel="stylesheet" href="/assets/css/jurisprudencia.css">
-<link rel="icon" href="/public/logos/oab.png">
+<link rel="icon" href="/public/logos/favicon.png" sizes="any">
+<link rel="apple-touch-icon" href="/public/logos/apple-touch-icon.png">
 </head>
 <body>
 
@@ -40,7 +41,13 @@
         <ul>
           <li><strong>Identificação:</strong> número de inscrição na OAB, seccional (UF)
             e, se você quiser informar, o nome. O nome é opcional e
-            <strong>não é conferido</strong> — o que a OAB confirma é o número.</li>
+            <strong>não é conferido</strong>.</li>
+          <li><strong>CPF — informado e NÃO guardado.</strong> O CPF é pedido porque a
+            conferência é dos dois juntos: o número da inscrição, sozinho, é dado
+            público (o CNA da OAB devolve o número a partir do nome). Ele é comparado
+            com o código embaralhado que a OAB/ES já mantém e é
+            <strong>descartado na mesma chamada</strong> — não existe coluna de CPF,
+            nem de hash de CPF, no nosso banco.</li>
           <li><strong>Uso da busca:</strong> a rota chamada, a classe recursal, quais
             acórdãos foram devolvidos, o código de resposta e a duração.
             O <strong>texto que você digita não é guardado</strong>: dele fica apenas um
@@ -53,7 +60,7 @@
         <div class="destaque-legal">
           <i class="fas fa-unlink" aria-hidden="true"></i>
           <p>
-            <strong>A busca não fica ligada à pessoa.</strong> A identificação e o
+            <strong>O CPF não é guardado e a busca não fica ligada à pessoa.</strong> A identificação e o
             registro de uso vivem em tabelas separadas, e o registro de uso não
             guarda a inscrição — só a chave do convênio, que é a mesma para toda a
             OAB/ES. Não existe caminho, no banco, que ligue uma pesquisa a um
