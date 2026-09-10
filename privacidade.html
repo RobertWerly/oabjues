@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacidade e uso dos dados — Busca de jurisprudência OAB/ES</title>
+<meta name="description" content="Como a busca de jurisprudência criminal da OAB/ES trata os dados que você informa.">
+<link rel="stylesheet" href="/assets/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700|Roboto:300,400,500,700&display=swap">
+<link rel="stylesheet" href="/assets/css/jurisprudencia.css">
+<link rel="icon" href="/public/logos/oab.png">
+</head>
+<body>
+
+<header class="barra-topo sticky-top">
+  <div class="container-lg d-flex align-items-center justify-content-between" style="height:56px">
+    <div class="d-flex align-items-center gap-2 text-white">
+      <i class="fas fa-user-shield" style="color:#f08a80"></i>
+      <span class="titulo fonte-titulo">Privacidade</span>
+    </div>
+    <a href="/" class="link-voltar">
+      <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Voltar à busca
+    </a>
+  </div>
+</header>
+
+<main class="container-lg py-4">
+  <div class="row">
+    <div class="col-12 col-lg-9 col-xl-8">
+
+      <h1 class="fw-bolder fonte-titulo mb-1" style="font-size:1.6rem">Privacidade e uso dos dados</h1>
+      <p class="mb-4" style="font-size:.92rem;color:var(--oab-texto-2)">
+        Como a busca de jurisprudência criminal da <strong>OAB/ES</strong>, mantida
+        em parceria com o <strong>JUES</strong>, trata os dados que você informa.
+      </p>
+
+      <section class="painel p-3 p-sm-4 mb-3 texto-legal">
+        <h2>O que é coletado</h2>
+        <ul>
+          <li><strong>Identificação:</strong> número de inscrição na OAB, seccional (UF)
+            e, se você quiser informar, o nome. O nome é opcional e
+            <strong>não é conferido</strong> — o que a OAB confirma é o número.</li>
+          <li><strong>Uso da busca:</strong> a rota chamada, a classe recursal, quais
+            acórdãos foram devolvidos, o código de resposta e a duração.
+            O <strong>texto que você digita não é guardado</strong>: dele fica apenas um
+            hash, que serve para contar repetição sem preservar a pergunta.</li>
+          <li><strong>Dados técnicos:</strong> o endereço IP, guardado
+            <strong>apenas como hash</strong>, de forma que não é possível recuperar o
+            IP original a partir do registro.</li>
+        </ul>
+
+        <div class="destaque-legal">
+          <i class="fas fa-unlink" aria-hidden="true"></i>
+          <p>
+            <strong>A busca não fica ligada à pessoa.</strong> A identificação e o
+            registro de uso vivem em tabelas separadas, e o registro de uso não
+            guarda a inscrição — só a chave do convênio, que é a mesma para toda a
+            OAB/ES. Não existe caminho, no banco, que ligue uma pesquisa a um
+            advogado.
+          </p>
+        </div>
+
+        <h2>Para que serve</h2>
+        <p>
+          A finalidade é <strong>estatística</strong>: permitir que a OAB/ES acompanhe o
+          volume de uso da ferramenta e quantos advogados a utilizam. O hash do IP é
+          usado exclusivamente para conter requisições automatizadas e raspagem do
+          acervo.
+        </p>
+        <p>
+          Os dados <strong>não</strong> são usados para publicidade,
+          <strong>não</strong> são vendidos e <strong>não</strong> são compartilhados
+          com terceiros.
+        </p>
+
+        <h2>Por quanto tempo</h2>
+        <ul>
+          <li>As <strong>identificações</strong> são apagadas após
+            <strong>180 dias</strong>.</li>
+          <li>O <strong>registro de uso</strong> é apagado após
+            <strong>90 dias</strong>.</li>
+        </ul>
+        <p>
+          O expurgo é automático e roda todo dia de madrugada. Estatística não precisa
+          de histórico perpétuo de dado pessoal, então ele não é guardado.
+        </p>
+
+        <h2>Nada fica no seu navegador</h2>
+        <p>
+          A conferência da inscrição é feita <strong>a cada visita</strong>, contra a
+          base do convênio. Não há login, não há senha, e a página não grava
+          <em>cookie</em>, <code>localStorage</code> nem <code>sessionStorage</code>.
+          Fechou, acabou.
+        </p>
+
+        <h2>Seus direitos</h2>
+        <p>
+          Você pode solicitar acesso, correção ou exclusão dos seus registros
+          escrevendo para a OAB/ES ou para
+          <a href="mailto:contato@jurimetria.es">contato@jurimetria.es</a>. Como não há
+          cadastro nem senha, a identificação para atender ao pedido é feita pela
+          própria seccional.
+        </p>
+
+        <h2 class="aviso-titulo"><i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>Aviso importante</h2>
+        <p>
+          Esta é uma <strong>ferramenta de apoio</strong>. Os acórdãos são reproduzidos
+          como o Tribunal de Justiça do Espírito Santo publicou, sem resumo e sem
+          edição — mas a seleção depende da forma como você pesquisa, e a busca não
+          substitui a consulta processual. Antes de citar em peça, confira o inteiro
+          teor no
+          <a href="https://sistemas.tjes.jus.br/consultaunificada/" target="_blank" rel="noopener">sistema
+          de consulta do TJES</a>.
+        </p>
+        <p class="mb-0">
+          Esta página <strong>não</strong> apresenta taxa de concessão, perfil decisório
+          de desembargador, tese ou estatística — esses recursos são do
+          <a href="https://jurimetriabr.com" target="_blank" rel="noopener">JUES</a>.
+        </p>
+      </section>
+
+      <p style="font-size:.83rem;color:var(--oab-texto-3)">
+        <a href="/suporte"><i class="fas fa-life-ring me-1" aria-hidden="true"></i>Suporte</a>
+        · <a href="/">Voltar à busca</a>
+      </p>
+    </div>
+  </div>
+</main>
+</body>
+</html>

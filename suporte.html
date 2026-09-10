@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suporte — Busca de jurisprudência OAB/ES</title>
+<meta name="description" content="Ajuda para a busca de jurisprudência criminal da OAB/ES: identificação, resultados e contato com o time do JUES.">
+
+<!-- Mesmas dependências da busca, pelos mesmos motivos. Bootstrap vendorizado
+     (a página abre offline e não depende de terceiro no ar). -->
+<link rel="stylesheet" href="/assets/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700|Roboto:300,400,500,700&display=swap">
+<link rel="stylesheet" href="/assets/css/jurisprudencia.css">
+<link rel="icon" href="/public/logos/oab.png">
+</head>
+<body>
+
+<header class="barra-topo sticky-top">
+  <div class="container-lg d-flex align-items-center justify-content-between" style="height:56px">
+    <div class="d-flex align-items-center gap-2 text-white">
+      <i class="fas fa-life-ring" style="color:#f08a80"></i>
+      <span class="titulo fonte-titulo">Suporte</span>
+    </div>
+    <a href="/" class="link-voltar">
+      <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Voltar à busca
+    </a>
+  </div>
+</header>
+
+<main class="container-lg py-4">
+
+  <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <img src="/public/logos/jues.png" alt="JUES" class="logo-parceria" width="36" height="36">
+      <span class="logo-x">✕</span>
+      <span class="marca-oab" role="img" aria-label="OAB Espírito Santo">
+        <img src="/public/logos/oab.png" alt="" class="logo-oab" width="105" height="42">
+        <span class="sigla-es"><span class="barra">/</span>ES</span>
+      </span>
+    </div>
+    <span class="selo-parceria">JUES × OAB/ES — Parceria oficial</span>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-8">
+      <section class="painel p-0 chat" aria-label="Atendimento">
+        <div class="chat-topo">
+          <span class="chat-ponto" aria-hidden="true"></span>
+          <div>
+            <strong>Atendimento da busca</strong>
+            <!-- Dito na cara: é roteiro, não gente digitando. Um chat que
+                 finge atendente ao vivo é o motivo de as pessoas
+                 desconfiarem de chat de suporte. -->
+            <span class="chat-sub">respostas prontas · atendente humano em um clique</span>
+          </div>
+          <button type="button" id="recomecar" class="btn btn-sm btn-outline-secondary ms-auto">
+            <i class="fas fa-redo me-1" aria-hidden="true"></i>Recomeçar
+          </button>
+        </div>
+
+        <!-- `aria-live="polite"`: quem usa leitor de tela ouve a resposta
+             nova sem precisar caçar onde ela apareceu. -->
+        <ul class="conversa" id="conversa" aria-live="polite" aria-atomic="false"></ul>
+
+        <div class="opcoes" id="opcoes"></div>
+      </section>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <section class="painel p-3 mb-3" aria-label="Canais diretos">
+        <h2 class="titulo-lateral">Prefere ir direto?</h2>
+        <a class="canal" id="canal-whatsapp" href="#" target="_blank" rel="noopener">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i>
+          <span><strong>WhatsApp</strong><br>time do JUES</span>
+        </a>
+        <a class="canal" id="canal-email" href="#">
+          <i class="far fa-envelope" aria-hidden="true"></i>
+          <span><strong>E-mail</strong><br>contato@jurimetria.es</span>
+        </a>
+        <a class="canal" id="canal-instagram" href="#" target="_blank" rel="noopener">
+          <i class="fab fa-instagram" aria-hidden="true"></i>
+          <span><strong>Instagram</strong><br>@jurimetriaes</span>
+        </a>
+      </section>
+
+      <section class="painel painel-jues p-3" aria-label="JUES">
+        <h2 class="titulo-lateral">O que existe além desta busca</h2>
+        <p class="mb-2" style="font-size:.85rem;color:var(--oab-texto-2)">
+          Esta página serve o <strong>texto do tribunal</strong>. Taxa de
+          concessão, perfil de cada desembargador, tese e estatística são o
+          JUES — mesma base, com a análise em cima.
+        </p>
+        <a class="btn btn-jues w-100" id="cta-jues" href="#" target="_blank" rel="noopener">
+          <i class="fas fa-arrow-right me-2" aria-hidden="true"></i>Criar conta no JUES
+        </a>
+        <p class="mt-2 mb-0" style="font-size:.78rem;color:var(--oab-texto-3)">
+          Advogado inscrito na OAB/ES tem 15 dias de acesso integral.
+        </p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  // Os links da barra lateral saem do mesmo módulo que o chat usa — nenhuma
+  // URL do JUES escrita duas vezes.
+  import { JUES, emailComContexto } from "/assets/js/jues.js";
+  document.getElementById("canal-whatsapp").href = JUES.whatsapp;
+  document.getElementById("canal-instagram").href = JUES.instagram;
+  document.getElementById("canal-email").href =
+    emailComContexto("Suporte — busca de jurisprudência",
+      "— enviado pela busca de jurisprudência OAB/ES —\n\nDescreva abaixo o que aconteceu:\n\n");
+  document.getElementById("cta-jues").href = JUES.cadastro("suporte-lateral");
+</script>
+<script type="module" src="/assets/js/suporte.js"></script>
+</body>
+</html>

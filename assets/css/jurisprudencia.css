@@ -370,3 +370,114 @@ mark{background:var(--oab-grifo);color:inherit;padding:0 .15em;border-radius:2px
   align-items:center;justify-content:center;font-size:1.25rem;
   background:var(--oab-superficie-2);border:1px solid var(--oab-borda);color:var(--oab-azul);
 }
+
+/* ── convite do JUES (abre ao credenciar) e suporte ────────────────────── */
+.convite-fundo{
+  position:fixed;inset:0;z-index:1080;display:flex;align-items:center;
+  justify-content:center;padding:1rem;background:rgba(15,23,42,.55);
+  animation:convite-entra .16s ease-out;
+}
+@keyframes convite-entra{from{opacity:0}to{opacity:1}}
+/* Quem pediu menos movimento no sistema não recebe animação nenhuma. */
+@media (prefers-reduced-motion:reduce){.convite-fundo{animation:none}}
+.convite{
+  position:relative;width:100%;max-width:480px;background:var(--oab-superficie);
+  border-radius:14px;padding:1.5rem;box-shadow:0 18px 48px rgba(15,23,42,.28);
+  max-height:calc(100vh - 2rem);overflow:auto;
+}
+.convite-x{
+  position:absolute;top:.6rem;right:.6rem;width:32px;height:32px;border:0;
+  border-radius:8px;background:transparent;color:var(--oab-texto-3);cursor:pointer;
+}
+.convite-x:hover{background:var(--oab-fundo);color:var(--oab-texto)}
+.convite-marcas{display:flex;align-items:center;gap:.5rem;margin-bottom:.9rem}
+.convite-titulo{font-size:1.2rem;font-weight:800;margin:0 0 .6rem}
+.convite-texto{font-size:.9rem;line-height:1.55;color:var(--oab-texto-2);margin:0}
+.convite-texto-2{font-size:.85rem}
+.convite-linha{height:1px;background:var(--oab-borda);margin:.9rem 0}
+.convite-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:1.1rem}
+.convite-depois{
+  color:var(--oab-texto-3);text-decoration:none;font-size:.85rem;font-weight:600;padding:.5rem .25rem;
+}
+.convite-depois:hover{color:var(--oab-texto);text-decoration:underline}
+.convite-rodape{
+  margin:.9rem 0 0;font-size:.78rem;color:var(--oab-texto-3);
+  border-top:1px solid var(--oab-borda);padding-top:.7rem;
+}
+.btn-jues{
+  background:var(--oab-azul);border-color:var(--oab-azul);color:#fff;
+  font-weight:700;font-size:.88rem;
+}
+.btn-jues:hover,.btn-jues:focus{background:var(--oab-azul-hover);border-color:var(--oab-azul-hover);color:#fff}
+
+.link-voltar{color:rgba(255,255,255,.85);text-decoration:none;font-size:.85rem;font-weight:600}
+.link-voltar:hover{color:#fff;text-decoration:underline}
+.titulo-lateral{font-size:.8rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--oab-texto-3);margin:0 0 .7rem}
+.painel-jues{border-left:3px solid var(--oab-azul)}
+
+.chat{display:flex;flex-direction:column;overflow:hidden}
+.chat-topo{
+  display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;
+  border-bottom:1px solid var(--oab-borda);background:var(--oab-superficie-2);
+}
+.chat-ponto{width:9px;height:9px;border-radius:50%;background:var(--oab-verde);
+  box-shadow:0 0 0 3px var(--oab-verde-halo);flex:0 0 auto}
+.chat-sub{display:block;font-size:.76rem;color:var(--oab-texto-3)}
+.conversa{
+  list-style:none;margin:0;padding:1rem;display:flex;flex-direction:column;
+  gap:.6rem;min-height:280px;max-height:52vh;overflow-y:auto;
+}
+.balao{max-width:88%;padding:.6rem .8rem;border-radius:12px;font-size:.88rem;line-height:1.5}
+.balao-suporte{align-self:flex-start;background:var(--oab-fundo);
+  color:var(--oab-texto);border-bottom-left-radius:4px}
+.balao-eu{align-self:flex-end;background:var(--oab-azul);color:#fff;
+  border-bottom-right-radius:4px;font-weight:500}
+.balao code{background:rgba(15,23,42,.08);padding:.05rem .3rem;border-radius:4px;font-size:.85em}
+.opcoes{
+  display:flex;flex-wrap:wrap;gap:.5rem;padding:.85rem 1rem;
+  border-top:1px solid var(--oab-borda);background:var(--oab-superficie-2);
+}
+.opcao{
+  border:1px solid var(--oab-borda);background:var(--oab-superficie);
+  color:var(--oab-texto);border-radius:999px;padding:.42rem .85rem;
+  font-size:.83rem;font-weight:600;cursor:pointer;text-decoration:none;
+  transition:border-color .15s,background .15s;
+}
+.opcao:hover{border-color:var(--oab-azul);background:var(--oab-fundo);color:var(--oab-texto)}
+.opcao-saida{border-color:var(--oab-azul);color:var(--oab-azul)}
+.opcao-saida:hover{background:var(--oab-azul);color:#fff}
+.opcao-saida i{font-size:.7em;opacity:.75}
+
+.canal{
+  display:flex;align-items:center;gap:.7rem;padding:.6rem .7rem;margin-bottom:.4rem;
+  border:1px solid var(--oab-borda);border-radius:10px;text-decoration:none;
+  color:var(--oab-texto);font-size:.85rem;transition:border-color .15s,background .15s;
+}
+.canal:hover{border-color:var(--oab-azul);background:var(--oab-fundo);color:var(--oab-texto)}
+.canal i{font-size:1.2rem;color:var(--oab-azul);width:22px;text-align:center}
+.canal span{line-height:1.35;font-size:.8rem;color:var(--oab-texto-3)}
+.rodape-suporte{
+  margin:0;padding-top:.9rem;border-top:1px solid var(--oab-borda);
+  font-size:.83rem;color:var(--oab-texto-3);
+}
+.rodape-suporte a{color:var(--oab-azul);font-weight:600;text-decoration:none}
+.rodape-suporte a:hover{text-decoration:underline}
+.texto-legal h2{font-size:1rem;font-weight:800;margin:1.4rem 0 .5rem;color:var(--oab-texto)}
+.texto-legal h2:first-child{margin-top:0}
+.texto-legal p,.texto-legal li{font-size:.89rem;line-height:1.6;color:var(--oab-texto-2)}
+.texto-legal ul{padding-left:1.1rem;margin-bottom:.8rem}
+.texto-legal li{margin-bottom:.35rem}
+.texto-legal a{color:var(--oab-azul);font-weight:600}
+.texto-legal code{background:rgba(15,23,42,.07);padding:.05rem .3rem;border-radius:4px;font-size:.88em}
+.texto-legal .aviso-titulo{color:var(--oab-vermelho)}
+.destaque-legal{
+  display:flex;gap:.7rem;align-items:flex-start;margin:1rem 0;padding:.8rem .9rem;
+  border-left:3px solid var(--oab-verde);background:var(--oab-verde-fundo);border-radius:0 8px 8px 0;
+}
+.destaque-legal i{color:var(--oab-verde-texto);margin-top:.2rem}
+.destaque-legal p{margin:0;font-size:.86rem}
+.aviso-privacidade{
+  margin:.6rem 0 0;font-size:.78rem;color:var(--oab-texto-3);line-height:1.5;
+}
+.aviso-privacidade a{color:var(--oab-azul);font-weight:600}

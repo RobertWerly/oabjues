@@ -16,6 +16,7 @@
 import { buscar, vocabulario, recentes, identificar, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
 import { comBusca } from "./seletor.js";
+import { abrirConvite } from "./convite.js";
 import { esc, grifar, trecho, dataBr, dataCurta, classeDistintivo }
   from "./formato.js";
 
@@ -618,6 +619,11 @@ async function tentarIdentificar(e) {
       case "valido":
         // Abre e pronto. Nada é gravado: a próxima visita pergunta de novo.
         abrirBusca();
+        // O convite vem DEPOIS de abrir a busca, não no lugar dela: quem
+        // fechar sem ler já encontra a página pronta atrás. `recursos` sai do
+        // <select> que a página acabou de encher — o texto fala do acervo
+        // real, e não de um número escrito à mão que envelhece sozinho.
+        abrirConvite({ recursos: $("recurso").options.length });
         return;
       case "nao_encontrado":
         notaPortao(`<i class="fas fa-times-circle me-1"></i> A inscrição
