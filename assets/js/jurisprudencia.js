@@ -653,6 +653,15 @@ async function tentarIdentificar(e) {
 $("form-identificacao").addEventListener("submit", tentarIdentificar);
 
 async function iniciar() {
+  // A PORTA PRIMEIRO, antes de qualquer rede.
+  //
+  // Ela ficava depois do vocabulário, e isso tinha duas consequências: um
+  // soluço na rede deixava a página muda — sem porta e sem busca — e a chave
+  // que as versões antigas gravaram sobrevivia à visita. A porta não depende
+  // de saber quais recursos existem; o vocabulário carrega atrás dela.
+  limparGuardaAntiga();
+  $("portao").hidden = false;
+
   const sel = $("recurso");
   try {
     const { recursos, seccionais } = await vocabulario();
@@ -672,10 +681,6 @@ async function iniciar() {
     return;
   }
   aplicarBusca();
-
-  // A porta SEMPRE aparece. Não existe "já se identificou neste navegador".
-  limparGuardaAntiga();
-  $("portao").hidden = false;
 
   estadoVazio({ inicial: true });
   await carregarVocabulario();

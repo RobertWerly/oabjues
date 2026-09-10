@@ -19,6 +19,14 @@
   --oab-superficie:#fff;
   --oab-superficie-2:#f8fafc;
   --oab-grifo:#fde68a;
+  /* Verde do estado ligado. `--oab-verde-texto` é mais escuro que
+     `--oab-verde` de propósito: o mesmo #16a34a que fica bom numa borda dá
+     3,3:1 em texto de 14px sobre branco, abaixo do mínimo de 4,5:1 da WCAG
+     AA. #15803d dá 4,9:1. */
+  --oab-verde:#16a34a;
+  --oab-verde-texto:#15803d;
+  --oab-verde-fundo:#f0fdf4;
+  --oab-verde-halo:rgba(22,163,74,.18);
 }
 
 body{
@@ -107,22 +115,58 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
 }
 .seletor-vazio{margin:.4rem .55rem;font-size:.85rem;color:var(--oab-texto-3)}
 
-/* ── toggle "só concedidas" ──────────────────────────────────────────── */
-.interruptor{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none}
+/* ── toggle "só concedidas" ──────────────────────────────────────────────
+   CÁPSULA COM PONTO DE ESTADO, e não trilho deslizante.
+
+   O trilho anterior tinha 38px de largura ao lado dos campos e destoava de
+   uma linha em que tudo o mais é caixa: recurso, assunto, comarca, período.
+   Aqui ele é uma caixa como as outras — mesma altura, mesma borda, mesmo
+   fundo — e o que muda de estado é o ponto à esquerda.
+
+   O VERDE NÃO ESTÁ SOZINHO. Quem não distingue verde de cinza (8% dos homens)
+   continua vendo a mudança: o ponto ganha halo, a borda muda, o texto engorda
+   de 500 para 700 e a caixa ganha fundo. Cor é o reforço, não o sinal. */
+.interruptor{
+  display:flex;align-items:center;gap:.55rem;cursor:pointer;user-select:none;
+  height:38px;padding:0 .75rem;border-radius:10px;
+  background:var(--oab-superficie);border:1px solid var(--oab-borda);
+  transition:border-color .15s,background .15s;
+}
+/* `opacity:0` e não `display:none`: escondido de verdade some da navegação
+   por teclado e do leitor de tela, e a caixa vira um clique que não existe
+   para quem não usa mouse. */
 .interruptor input{position:absolute;opacity:0;width:0;height:0}
-.interruptor .trilho{
-  flex:0 0 auto;width:38px;height:22px;border-radius:11px;
-  background:var(--oab-borda);position:relative;transition:background .15s;
+.interruptor .ponto{
+  flex:0 0 auto;width:9px;height:9px;border-radius:50%;
+  background:var(--oab-texto-3);transition:background .15s,box-shadow .15s;
 }
-.interruptor .trilho::after{
-  content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;
-  border-radius:50%;background:#fff;transition:transform .15s;
-  box-shadow:0 1px 2px rgba(15,23,42,.3);
+.interruptor .rotulo-interruptor{
+  font-size:.85rem;font-weight:500;color:var(--oab-texto-2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.interruptor input:checked + .trilho{background:var(--oab-azul)}
-.interruptor input:checked + .trilho::after{transform:translateX(16px)}
-.interruptor input:focus-visible + .trilho{outline:2px solid var(--oab-azul);outline-offset:2px}
-.interruptor .rotulo-interruptor{font-size:.85rem;font-weight:600;color:var(--oab-texto)}
+.interruptor:hover{border-color:var(--oab-texto-3)}
+
+.interruptor:has(input:checked){
+  background:var(--oab-verde-fundo);border-color:var(--oab-verde);
+}
+.interruptor:has(input:checked) .ponto{
+  background:var(--oab-verde);box-shadow:0 0 0 3px var(--oab-verde-halo);
+}
+.interruptor:has(input:checked) .rotulo-interruptor{
+  color:var(--oab-verde-texto);font-weight:700;
+}
+/* `:has()` não existe em navegador velho, e aí a caixa ficaria sem nenhum
+   estado ligado. O irmão adjacente cobre o ponto e o rótulo sozinho — a
+   caixa não muda, mas o sinal continua visível. */
+.interruptor input:checked ~ .ponto{
+  background:var(--oab-verde);box-shadow:0 0 0 3px var(--oab-verde-halo);
+}
+.interruptor input:checked ~ .rotulo-interruptor{
+  color:var(--oab-verde-texto);font-weight:700;
+}
+.interruptor:has(input:focus-visible){
+  outline:2px solid var(--oab-azul);outline-offset:2px;
+}
 .form-control,.form-select{
   background:var(--oab-superficie);border-color:var(--oab-borda);color:var(--oab-texto);
   font-weight:500;
