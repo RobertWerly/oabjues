@@ -604,10 +604,6 @@ async function tentarIdentificar(e) {
     const r = await identificar({ inscricao, seccional, nome });
     switch (r.veredito) {
       case "valido":
-      // Sem a base daquela seccional não dá para afirmar que o número é falso.
-      // Dizer "não existe" seria mentir; então passa, e o registro guarda o
-      // veredito como veio.
-      case "sem_base":
         try {
           localStorage.setItem(GUARDA, JSON.stringify({
             inscricao: r.inscricao ?? inscricao,
@@ -627,7 +623,15 @@ async function tentarIdentificar(e) {
         return;
     }
   } catch (err) {
-    if (err instanceof ErroApi && err.status === 429) {
+    // 422 = `sem_base`: a API não tem a base daquela seccional, então não dá
+    // para conferir. Isto JÁ FOI passagem, e era um furo: com {"seccional":"SP"}
+    // qualquer número inventado abria a porta. Agora recusa, e diz a verdade —
+    // "não existe" seria mentira, "não consigo conferir" é o que aconteceu.
+    if (err instanceof ErroApi && err.status === 422) {
+      notaPortao(`<i class="fas fa-circle-info me-1"></i> Só conseguimos conferir
+        inscrições da seccional do Espírito Santo. Se a sua é de outra seccional,
+        fale com a OAB/ES.`);
+    } else if (err instanceof ErroApi && err.status === 429) {
       notaPortao(`<i class="fas fa-hourglass-half me-1"></i> Muitas tentativas
         seguidas deste dispositivo. Espere alguns minutos e tente de novo.`);
     } else if (err instanceof ErroApi && err.status === 400) {
