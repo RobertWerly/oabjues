@@ -75,6 +75,54 @@ h1,h2,h3,.fonte-titulo{font-family:Montserrat,Roboto,Arial,sans-serif}
 .periodo input{min-width:0;flex:1 1 135px}
 .periodo span{font-size:.75rem;color:var(--oab-texto-3);flex:0 0 auto}
 .dica{display:block;margin-top:.25rem;font-size:.72rem;color:var(--oab-texto-3)}
+
+/* ── seletor com busca ───────────────────────────────────────────────────
+   O <select> continua no HTML e continua sendo a verdade; ele é escondido de
+   um jeito que NÃO o tira do formulário (display:none no Chrome cancela a
+   validação nativa de campo required, e `recurso` é required). */
+.seletor{position:relative}
+.seletor-nativo{position:absolute;opacity:0;pointer-events:none;width:100%;height:0;padding:0;border:0}
+.seletor-gatilho{
+  text-align:left;display:flex;align-items:center;width:100%;
+  background-image:var(--bs-form-select-bg-img);
+}
+.seletor-valor{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seletor-vazio-valor{color:var(--oab-texto-3)}
+.seletor-painel{
+  position:absolute;z-index:20;top:calc(100% + 4px);left:0;right:0;
+  background:var(--oab-superficie);border:1px solid var(--oab-borda);
+  border-radius:.5rem;box-shadow:0 8px 24px rgba(15,23,42,.14);padding:.5rem;
+}
+.seletor-busca{font-size:.9rem;margin-bottom:.4rem}
+.seletor-lista{list-style:none;margin:0;padding:0;max-height:260px;overflow-y:auto}
+.seletor-item{
+  padding:.4rem .55rem;border-radius:.35rem;cursor:pointer;font-size:.9rem;
+  color:var(--oab-texto);
+}
+.seletor-item:hover,.seletor-ativo{background:var(--oab-fundo)}
+.seletor-escolhido{font-weight:700;color:var(--oab-azul)}
+.seletor-grupo{
+  padding:.5rem .55rem .2rem;font-size:.7rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--oab-texto-3);
+}
+.seletor-vazio{margin:.4rem .55rem;font-size:.85rem;color:var(--oab-texto-3)}
+
+/* ── toggle "só concedidas" ──────────────────────────────────────────── */
+.interruptor{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none}
+.interruptor input{position:absolute;opacity:0;width:0;height:0}
+.interruptor .trilho{
+  flex:0 0 auto;width:38px;height:22px;border-radius:11px;
+  background:var(--oab-borda);position:relative;transition:background .15s;
+}
+.interruptor .trilho::after{
+  content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;
+  border-radius:50%;background:#fff;transition:transform .15s;
+  box-shadow:0 1px 2px rgba(15,23,42,.3);
+}
+.interruptor input:checked + .trilho{background:var(--oab-azul)}
+.interruptor input:checked + .trilho::after{transform:translateX(16px)}
+.interruptor input:focus-visible + .trilho{outline:2px solid var(--oab-azul);outline-offset:2px}
+.interruptor .rotulo-interruptor{font-size:.85rem;font-weight:600;color:var(--oab-texto)}
 .form-control,.form-select{
   background:var(--oab-superficie);border-color:var(--oab-borda);color:var(--oab-texto);
   font-weight:500;

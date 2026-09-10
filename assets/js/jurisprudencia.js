@@ -15,6 +15,7 @@
 // ============================================================================
 import { buscar, vocabulario, recentes, identificar, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
+import { comBusca } from "./seletor.js";
 import { esc, grifar, trecho, dataBr, dataCurta, classeDistintivo }
   from "./formato.js";
 
@@ -313,7 +314,10 @@ function montarPedido(n) {
   const q = $("q").value.trim();
   if (q) p.q = q;
   if (camara) p.camara = camara;
-  for (const c of ["assunto", "comarca", "magistrado", "desfecho"]) if ($(c).value) p[c] = $(c).value;
+  for (const c of ["assunto", "comarca", "magistrado"]) if ($(c).value) p[c] = $(c).value;
+  // O interruptor só acrescenta a chave quando está ligado. Desligado é
+  // "todos", e todos é a ausência do filtro — não um terceiro valor.
+  if ($("so-favoravel").checked) p.desfecho = "favoravel";
   // Período em branco não vira chave. Mandar `dataInicio: ""` seria pior que
   // não mandar: no motor a string vazia vira NULL pelo `nullif` e o filtro
   // some — o pedido pareceria ter intervalo e não teria. Sem data, o pedido
@@ -472,6 +476,36 @@ function encherMagistrados(sel, valores) {
   if ([...sel.options].some((o) => o.value === atual)) sel.value = atual;
 }
 
+/**
+ * O rótulo do interruptor, que muda com a classe processual.
+ *
+ * Habeas corpus é concedido, apelação é provida, revisão é procedente — e o
+ * texto vem da API justamente para a página não ter esse vocabulário escrito
+ * nela. Se a API não mandar (rota velha, ou recurso sem rótulo cadastrado), o
+ * interruptor é escondido em vez de mostrar um texto genérico: melhor não
+ * oferecer o filtro do que oferecê-lo com a palavra errada.
+ */
+function aplicarDesfecho(opcoes) {
+  const favoravel = (opcoes ?? []).find((o) => o && o.id === "favoravel");
+  const campo = $("so-favoravel").closest(".col-12");
+  if (!favoravel) {
+    $("so-favoravel").checked = false;
+    if (campo) campo.hidden = true;
+    return;
+  }
+  if (campo) campo.hidden = false;
+  $("rotulo-favoravel").textContent = `Só ${favoravel.rotulo.toLowerCase()}`;
+}
+
+/** Os seletores longos ganham campo de busca. São 94 assuntos, 59 comarcas e
+ *  28 desembargadores — rolar até achar é o que isto resolve. */
+function aplicarBusca() {
+  comBusca($("recurso"), { placeholder: "Buscar recurso…" });
+  comBusca($("assunto"), { placeholder: "Buscar assunto…" });
+  comBusca($("comarca"), { placeholder: "Buscar comarca…" });
+  comBusca($("magistrado"), { placeholder: "Buscar desembargador…" });
+}
+
 async function carregarVocabulario() {
   // Sem isto, assunto e comarca viram caixa de texto onde qualquer valor
   // devolve zero em silêncio — a comarca se disca por id, não por nome.
@@ -481,10 +515,10 @@ async function carregarVocabulario() {
     encher($("assunto"), v.assunto, "Todos");
     encher($("comarca"), v.comarca, "Todas");
     encherMagistrados($("magistrado"), v.magistrado);
-    // "Todos" e não "Todas": o rótulo muda com a classe (Concedidas, Providos,
-    // Procedentes), e um artigo fixo brigaria com metade deles.
-    encher($("desfecho"), v.desfecho, "Todos");
+    aplicarDesfecho(v.desfecho);
     aplicarPeriodo(v.periodo);
+    // O <select> foi repovoado; a caixa por cima precisa reler as opções.
+    aplicarBusca();
   } catch {
     // O elemento da nota não existe mais; o aviso vai para a área de mensagens.
     nota('<i class="fas fa-info-circle me-1"></i> Não foi possível carregar as opções de filtro. A busca por texto continua funcionando.');
@@ -627,6 +661,8 @@ async function iniciar() {
     nota('<i class="fas fa-plug me-1"></i> O serviço de jurisprudência não devolveu nenhum tipo de recurso.');
     return;
   }
+  aplicarBusca();
+
   // Quem já se identificou neste navegador entra direto.
   if (advogadoGuardado()) abrirBusca(); else $("portao").hidden = false;
 

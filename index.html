@@ -170,11 +170,17 @@
              pelo vocabulário com o acórdão mais antigo e o mais novo DO
              RECURSO escolhido, e mudam quando o recurso muda. -->
         <div class="col-12 col-sm-4 col-lg-3">
-          <label class="rotulo" for="desfecho">Desfecho</label>
-          <!-- As opções vêm da API: habeas corpus é concedido, apelação é
-               provida, revisão é procedente. O id é estável (favoravel /
-               desfavoravel); o rótulo é que muda com a classe. -->
-          <select class="form-select" id="desfecho"><option value="">Todos</option></select>
+          <span class="rotulo">Desfecho</span>
+          <!-- Interruptor, não seletor: a pergunta é "só as que deram certo?",
+               que tem duas respostas, e um <select> de três opções pedia uma
+               escolha onde não há. O rótulo vem da API porque muda com a
+               classe — habeas corpus é concedido, apelação é provida, revisão
+               é procedente. -->
+          <label class="interruptor" style="height:38px">
+            <input type="checkbox" id="so-favoravel">
+            <span class="trilho" aria-hidden="true"></span>
+            <span class="rotulo-interruptor" id="rotulo-favoravel">Só concedidas</span>
+          </label>
         </div>
         <div class="col-12 col-sm-8 col-lg-5">
           <label class="rotulo" for="data-inicio">Período de julgamento</label>
