@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/acordao/:id",
-      "destination": "/acordao.html"
+      "destination": "/acordao"
     },
     {
       "source": "/bff/jurisprudencia.php",
