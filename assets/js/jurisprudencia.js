@@ -13,7 +13,7 @@
 //   sem total a API não devolve contagem. O fim da lista é `tem_mais: false`,
 //             nunca um zero que se confunde com "nada encontrado".
 // ============================================================================
-import { buscar, vocabulario, recentes, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
+import { buscar, vocabulario, recentes, identificar, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
 import { esc, grifar, trecho, dataBr, dataCurta, classeDistintivo }
   from "./formato.js";
@@ -312,7 +312,7 @@ function montarPedido(n) {
   const q = $("q").value.trim();
   if (q) p.q = q;
   if (camara) p.camara = camara;
-  for (const c of ["assunto", "comarca", "magistrado"]) if ($(c).value) p[c] = $(c).value;
+  for (const c of ["assunto", "comarca", "magistrado", "desfecho"]) if ($(c).value) p[c] = $(c).value;
   // Período em branco não vira chave. Mandar `dataInicio: ""` seria pior que
   // não mandar: no motor a string vazia vira NULL pelo `nullif` e o filtro
   // some — o pedido pareceria ter intervalo e não teria. Sem data, o pedido
@@ -389,7 +389,10 @@ function encher(sel, valores, vazio) {
   sel.add(new Option(vazio, ""));
   for (const v of valores ?? []) {
     if (typeof v === "string") sel.add(new Option(v, v));
-    else if (v && typeof v === "object") sel.add(new Option(v.nome, v.id));
+    // `nome` na comarca, `rotulo` no desfecho — o vocabulário usa a palavra do
+    // domínio de cada um, e o seletor aceita as duas em vez de exigir que a
+    // API se dobre à forma do <select>.
+    else if (v && typeof v === "object") sel.add(new Option(v.rotulo ?? v.nome, v.id));
   }
   if ([...sel.options].some((o) => o.value === atual)) sel.value = atual;
 }
@@ -477,6 +480,9 @@ async function carregarVocabulario() {
     encher($("assunto"), v.assunto, "Todos");
     encher($("comarca"), v.comarca, "Todas");
     encherMagistrados($("magistrado"), v.magistrado);
+    // "Todos" e não "Todas": o rótulo muda com a classe (Concedidas, Providos,
+    // Procedentes), e um artigo fixo brigaria com metade deles.
+    encher($("desfecho"), v.desfecho, "Todos");
     aplicarPeriodo(v.periodo);
   } catch {
     // O elemento da nota não existe mais; o aviso vai para a área de mensagens.
@@ -516,11 +522,100 @@ $("proxima").addEventListener("click", () => executar(Math.min(PAGINA_MAX, pagin
  * "Agravo em Execução Penal" e "Embargos Infringentes e de Nulidade". A rota
  * responde com cache de uma hora, então a ida extra acontece uma vez.
  */
+// ── identificação ─────────────────────────────────────────────────────────
+/**
+ * A porta. Sem identificar, não há busca.
+ *
+ * A resposta fica no `localStorage` do próprio navegador, então ela aparece
+ * uma vez por dispositivo — e não é credencial: não dá acesso a nada que a
+ * chave da OAB já não dê. Quem apagar o armazenamento vê a porta de novo, e é
+ * só isso que acontece. Guardar aqui é conveniência, não segurança; a defesa
+ * de verdade é a assinatura HMAC entre o BFF e a API.
+ */
+const GUARDA = "oabjus-advogado";
+
+function advogadoGuardado() {
+  try {
+    const cru = localStorage.getItem(GUARDA);
+    if (!cru) return null;
+    const d = JSON.parse(cru);
+    return d && d.inscricao ? d : null;
+  } catch {
+    // Navegador com armazenamento bloqueado: a porta simplesmente reaparece.
+    return null;
+  }
+}
+
+function abrirBusca() {
+  $("portao").hidden = true;
+  $("tudo-da-busca").hidden = false;
+}
+
+function notaPortao(html, classe = "aviso-motor") {
+  $("erro-identificacao").innerHTML = `<div class="${classe}">${html}</div>`;
+}
+
+async function tentarIdentificar(e) {
+  e.preventDefault();
+  const botao = $("entrar");
+  const inscricao = $("inscricao").value.trim();
+  const seccional = $("seccional").value;
+  const nome = $("nome-advogado").value.trim();
+  if (!inscricao) return;
+
+  botao.disabled = true;
+  $("erro-identificacao").innerHTML = "";
+  try {
+    const r = await identificar({ inscricao, seccional, nome });
+    switch (r.veredito) {
+      case "valido":
+      // Sem a base daquela seccional não dá para afirmar que o número é falso.
+      // Dizer "não existe" seria mentir; então passa, e o registro guarda o
+      // veredito como veio.
+      case "sem_base":
+        try {
+          localStorage.setItem(GUARDA, JSON.stringify({
+            inscricao: r.inscricao ?? inscricao,
+            seccional: r.seccional ?? seccional,
+            nome: nome || null,
+          }));
+        } catch { /* segue sem guardar; a porta volta na próxima visita */ }
+        abrirBusca();
+        return;
+      case "nao_encontrado":
+        notaPortao(`<i class="fas fa-times-circle me-1"></i> A inscrição
+          <strong>${esc(r.inscricao ?? inscricao)}</strong> não consta da base da
+          OAB/${esc(r.seccional ?? seccional)}. Confira o número e tente de novo.`);
+        return;
+      default:
+        notaPortao('<i class="fas fa-times-circle me-1"></i> Informe um número de inscrição válido — somente números.');
+        return;
+    }
+  } catch (err) {
+    if (err instanceof ErroApi && err.status === 429) {
+      notaPortao(`<i class="fas fa-hourglass-half me-1"></i> Muitas tentativas
+        seguidas deste dispositivo. Espere alguns minutos e tente de novo.`);
+    } else if (err instanceof ErroApi && err.status === 400) {
+      notaPortao('<i class="fas fa-times-circle me-1"></i> Informe um número de inscrição válido — somente números.');
+    } else {
+      notaPortao('<i class="fas fa-plug me-1"></i> Não foi possível conferir a inscrição agora. Tente de novo em instantes.');
+    }
+  } finally {
+    botao.disabled = false;
+  }
+}
+
+$("form-identificacao").addEventListener("submit", tentarIdentificar);
+
 async function iniciar() {
   const sel = $("recurso");
   try {
-    const { recursos } = await vocabulario();
+    const { recursos, seccionais } = await vocabulario();
     for (const r of recursos ?? []) sel.add(new Option(r.rotulo, r.id));
+    // Só as seccionais que a API consegue CONFERIR. Oferecer uma sem base
+    // seria prometer verificação que não existe.
+    encher($("seccional"), (seccionais ?? []).map((x) => ({ id: x.uf, rotulo: `${x.nome} (${x.uf})` })), "");
+    $("seccional").remove(0);   // tira o "" que `encher` põe na frente
   } catch {
     // Sem a lista não há busca possível: `recurso` é obrigatório no contrato.
     // Melhor dizer isso do que deixar um seletor vazio parecendo escolha.
@@ -531,6 +626,9 @@ async function iniciar() {
     nota('<i class="fas fa-plug me-1"></i> O serviço de jurisprudência não devolveu nenhum tipo de recurso.');
     return;
   }
+  // Quem já se identificou neste navegador entra direto.
+  if (advogadoGuardado()) abrirBusca(); else $("portao").hidden = false;
+
   estadoVazio({ inicial: true });
   await carregarVocabulario();
 }

@@ -6,7 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');
 
-const ROTAS_POST = ['busca'];
+const ROTAS_POST = ['busca', 'identificar'];
 
 function responder(int $status, array $corpo): never {
     http_response_code($status);
@@ -24,7 +24,7 @@ if ($base === '' || $chave === '' || $segredo === '') {
 $rota = (string) ($_GET['rota'] ?? '');
 // Allowlist de rota: o parâmetro vem do navegador e não pode virar caminho
 // arbitrário no host de destino.
-if (!preg_match('#^(busca|vocabulario|recentes/[a-z_]{3,40}|acordao/[0-9a-fA-F-]{36})$#', $rota)) {
+if (!preg_match('#^(busca|identificar|vocabulario|recentes/[a-z_]{3,40}|acordao/[0-9a-fA-F-]{36})$#', $rota)) {
     responder(400, ['erro' => 'rota inválida']);
 }
 
@@ -38,6 +38,39 @@ if ($metodo === 'POST') {
     if ($corpo !== '' && json_decode($corpo) === null && json_last_error() !== JSON_ERROR_NONE) {
         responder(400, ['erro' => 'corpo inválido: esperado JSON']);
     }
+}
+
+// A identificação leva um `cliente` que o NAVEGADOR NÃO ESCOLHE.
+//
+// É hash do IP do visitante, e ele é a unidade da trava de tentativas na API.
+// Se viesse do JavaScript, contornar a trava seria trocar uma string a cada
+// chamada — a trava existiria só no papel. Então o que vier do visitante é
+// apagado, e o valor é calculado aqui, onde ele não alcança.
+//
+// HMAC com o próprio segredo da API, e não sha256 puro: o espaço de IPv4 tem
+// 4 bilhões de entradas e cabe numa tabela arco-íris em horas. Com HMAC, quem
+// pegasse o log não reverteria endereço nenhum sem o segredo.
+//
+// É exatamente o que o aviso da tela promete ao advogado.
+if ($rota === 'identificar') {
+    $dados = $corpo === '' ? [] : json_decode($corpo, true);
+    if (!is_array($dados)) {
+        responder(400, ['erro' => 'corpo inválido: esperado JSON']);
+    }
+    unset($dados['cliente']);
+
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    // Atrás de proxy o IP do visitante vem no cabeçalho; o primeiro da lista é
+    // o cliente. Só é usado se o portal estiver mesmo atrás de proxy — senão o
+    // cabeçalho é escolhido pelo próprio visitante e não vale nada.
+    if (getenv('OABJUS_ATRAS_DE_PROXY') && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ip = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+    }
+    if ($ip !== '') {
+        $dados['cliente'] = hash_hmac('sha256', $ip, $segredo);
+    }
+
+    $corpo = json_encode($dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 // A assinatura cobre a ROTA CANÔNICA, não o caminho completo da URL.

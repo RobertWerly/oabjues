@@ -87,6 +87,25 @@ export async function buscar(pedido) {
   });
 }
 
+/**
+ * Verifica a inscrição contra a base que a OAB cedeu (30.089 do ES).
+ *
+ * O `cliente` da trava de tentativas NÃO sai daqui: quem o calcula é o BFF,
+ * a partir do IP, e ele apaga o que vier do navegador. Mandar um daqui não
+ * adiantaria nada — e é essa a intenção.
+ *
+ * Vereditos: `valido` · `nao_encontrado` · `sem_base` (não temos a base
+ * daquela seccional) · `inscricao_invalida` (400) · `muitas_tentativas` (429).
+ */
+export async function identificar({ inscricao, seccional, nome }) {
+  if (DEMO) return demoIdentificar(inscricao);
+  return chamar("identificar", {}, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ inscricao, seccional, nome: nome || null }),
+  });
+}
+
 export async function acordao(id) {
   if (DEMO) return demoAcordao(id);
   return chamar(`acordao/${encodeURIComponent(id)}`);
@@ -224,6 +243,17 @@ async function demoBuscar(pedido) {
   };
 }
 
+async function demoIdentificar(inscricao) {
+  await pausa(300);
+  // Na demonstração, número par vale e ímpar não — para as duas telas
+  // aparecerem sem depender da base de verdade.
+  const n = parseInt(String(inscricao).replace(/\D/g, ""), 10);
+  if (!Number.isFinite(n)) return { veredito: "inscricao_invalida" };
+  return n % 2 === 0
+    ? { veredito: "valido", inscricao: String(n), seccional: "ES" }
+    : { veredito: "nao_encontrado", inscricao: String(n), seccional: "ES" };
+}
+
 async function demoAcordao(id) {
   await pausa(260);
   const i = DEMO_ITENS.find((x) => x.id === id);
@@ -258,9 +288,15 @@ const DEMO_RECURSOS = [
 
 async function demoVocabulario(recurso) {
   await pausa(120);
-  if (!recurso) return { recursos: DEMO_RECURSOS };
+  const DEMO_SECCIONAIS = [{ uf: "ES", nome: "Espírito Santo" }];
+  if (!recurso) return { recursos: DEMO_RECURSOS, seccionais: DEMO_SECCIONAIS };
   return {
     recursos: DEMO_RECURSOS,
+    seccionais: DEMO_SECCIONAIS,
+    desfecho: [
+      { id: "favoravel", rotulo: "Concedidas" },
+      { id: "desfavoravel", rotulo: "Não concedidas" },
+    ],
     camara: ["1ª Câmara Criminal", "2ª Câmara Criminal"],
     // Mesmo formato da API: nome + a câmara de que ele é TITULAR. Vem do
     // cadastro da composição vigente, não de onde o nome aparece nos acórdãos.

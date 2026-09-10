@@ -22,8 +22,8 @@ import { createHash, createHmac, randomBytes } from "node:crypto";
 
 /** Rotas que o navegador pode pedir. O parâmetro vem de fora: não pode virar
  *  caminho arbitrário no host de destino. */
-const ROTA_VALIDA = /^(busca|vocabulario|recentes\/[a-z_]{3,40}|acordao\/[0-9a-fA-F-]{36})$/;
-const ROTAS_POST = new Set(["busca"]);
+const ROTA_VALIDA = /^(busca|identificar|vocabulario|recentes\/[a-z_]{3,40}|acordao\/[0-9a-fA-F-]{36})$/;
+const ROTAS_POST = new Set(["busca", "identificar"]);
 const CORPO_MAX = 8192;
 
 function responder(res, status, corpo) {
@@ -89,6 +89,26 @@ export default async function handler(req, res) {
       try { JSON.parse(corpo); }
       catch { return responder(res, 400, { erro: "corpo inválido: esperado JSON" }); }
     }
+  }
+
+  // O `cliente` da identificação NÃO vem do navegador — ver o comentário longo
+  // em bff/jurisprudencia.php. É hash de IP, e é a unidade da trava de
+  // tentativas: deixá-lo com o visitante é não ter trava.
+  if (rota === "identificar") {
+    let dados;
+    try { dados = corpo === "" ? {} : JSON.parse(corpo); }
+    catch { return responder(res, 400, { erro: "corpo inválido: esperado JSON" }); }
+    if (typeof dados !== "object" || dados === null || Array.isArray(dados)) {
+      return responder(res, 400, { erro: "corpo inválido: esperado JSON" });
+    }
+    delete dados.cliente;
+    // Na Vercel o IP do visitante chega em x-forwarded-for; o primeiro da lista
+    // é o cliente. HMAC e não sha256 puro: IPv4 inteiro cabe numa tabela
+    // arco-íris, e com HMAC o log não reverte endereço sem o segredo.
+    const ip = String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim()
+            || req.socket?.remoteAddress || "";
+    if (ip) dados.cliente = createHmac("sha256", segredo).update(ip).digest("hex");
+    corpo = JSON.stringify(dados);
   }
 
   // A assinatura cobre a ROTA CANÔNICA, não o caminho completo da URL.
