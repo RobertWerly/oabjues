@@ -559,26 +559,38 @@ $("proxima").addEventListener("click", () => executar(Math.min(PAGINA_MAX, pagin
  */
 // ── identificação ─────────────────────────────────────────────────────────
 /**
- * A porta. Sem identificar, não há busca.
+ * A porta. Sem identificar, não há busca — E NÃO SE GUARDA NADA.
  *
- * A resposta fica no `localStorage` do próprio navegador, então ela aparece
- * uma vez por dispositivo — e não é credencial: não dá acesso a nada que a
- * chave da OAB já não dê. Quem apagar o armazenamento vê a porta de novo, e é
- * só isso que acontece. Guardar aqui é conveniência, não segurança; a defesa
- * de verdade é a assinatura HMAC entre o BFF e a API.
+ * Até 10/09/2026 o "valido" era gravado no `localStorage`, e nas visitas
+ * seguintes a porta era pulada. Estava errado por dois motivos, e o segundo é
+ * o que importa:
+ *
+ *   1. NÃO ERA VERIFICAÇÃO. O que abria a porta era uma chave no navegador do
+ *      próprio visitante, que ele escreve com uma linha no console. Bastava
+ *      `localStorage.setItem('oabjus-advogado','{"inscricao":"1"}')`. A trava
+ *      conferia um bilhete que o visitante emitia para si mesmo.
+ *
+ *   2. O FLUXO É OUTRO. O advogado chega REDIRECIONADO do site da OAB e se
+ *      identifica ali, na hora. A verificação é sempre contra a base do
+ *      convênio, a cada visita — não contra uma lembrança de uma visita
+ *      passada. Uma inscrição cancelada, suspensa ou transferida continuava
+ *      entrando enquanto o navegador não fosse limpo.
+ *
+ * Então: toda carga desta página passa pela porta, e toda porta passa pela
+ * API. Sem `localStorage`, sem `sessionStorage`, sem cookie.
+ *
+ * O custo é uma chamada por visita. É `/identificar`, que só devolve
+ * veredito, e o teto por hora continua valendo.
  */
 const GUARDA = "oabjus-advogado";
 
-function advogadoGuardado() {
-  try {
-    const cru = localStorage.getItem(GUARDA);
-    if (!cru) return null;
-    const d = JSON.parse(cru);
-    return d && d.inscricao ? d : null;
-  } catch {
-    // Navegador com armazenamento bloqueado: a porta simplesmente reaparece.
-    return null;
-  }
+/** Apaga o que as versões antigas deixaram gravado.
+ *
+ *  Nada mais lê essa chave, então ela não abre porta nenhuma — mas é o número
+ *  de inscrição de uma pessoa parado no navegador dela sem servir a nada, e
+ *  dado que não serve a nada não fica guardado. */
+function limparGuardaAntiga() {
+  try { localStorage.removeItem(GUARDA); } catch { /* armazenamento bloqueado */ }
 }
 
 function abrirBusca() {
@@ -604,13 +616,7 @@ async function tentarIdentificar(e) {
     const r = await identificar({ inscricao, seccional, nome });
     switch (r.veredito) {
       case "valido":
-        try {
-          localStorage.setItem(GUARDA, JSON.stringify({
-            inscricao: r.inscricao ?? inscricao,
-            seccional: r.seccional ?? seccional,
-            nome: nome || null,
-          }));
-        } catch { /* segue sem guardar; a porta volta na próxima visita */ }
+        // Abre e pronto. Nada é gravado: a próxima visita pergunta de novo.
         abrirBusca();
         return;
       case "nao_encontrado":
@@ -667,8 +673,9 @@ async function iniciar() {
   }
   aplicarBusca();
 
-  // Quem já se identificou neste navegador entra direto.
-  if (advogadoGuardado()) abrirBusca(); else $("portao").hidden = false;
+  // A porta SEMPRE aparece. Não existe "já se identificou neste navegador".
+  limparGuardaAntiga();
+  $("portao").hidden = false;
 
   estadoVazio({ inicial: true });
   await carregarVocabulario();
