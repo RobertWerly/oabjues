@@ -1,0 +1,28 @@
+# Rotas limpas para o portal — o equivalente Apache do que a Vercel faz.
+#
+# Duas regras, e a ordem importa:
+#
+#   /acordao/{uuid}  serve acordao.html sem redirecionar. O endereço que o
+#                    advogado copia continua sendo /acordao/{uuid}.
+#   /index.html      redireciona para "/", para o mesmo conteúdo não existir
+#                    em dois endereços (e o buscador não escolher o feio).
+#
+# NADA disto é necessário se as páginas forem embutidas no template do portal
+# por outro caminho — nesse caso apague este arquivo e aponte a
+# <meta name="oabjus-bff"> das duas páginas para onde o PHP estiver.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # /index.html e /acordao.html deixam de ser endereços próprios.
+  RewriteCond %{THE_REQUEST} "\s/index\.html[\s?]" [NC]
+  RewriteRule ^index\.html$ / [R=301,L]
+  RewriteCond %{THE_REQUEST} "\s/acordao\.html[\s?]" [NC]
+  RewriteRule ^acordao\.html$ / [R=301,L]
+
+  # O acórdão, por id. Sem [R]: é reescrita interna, o endereço não muda.
+  RewriteRule ^acordao/[0-9a-fA-F-]{36}/?$ /acordao.html [L]
+</IfModule>
+
+# Sem mod_rewrite o site continua funcionando pelos arquivos .html; só os
+# endereços ficam com extensão.

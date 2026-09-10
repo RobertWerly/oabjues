@@ -201,8 +201,9 @@ function cartao(item, radicais, rotuloRecurso) {
   // abre em nova aba com o meio, o buscador do navegador acha, e o advogado
   // copia o endereço de um acórdão específico.
   const aTeor = el.querySelector('[data-acao="teor"]');
-  aTeor.href = `acordao.html?id=${encodeURIComponent(item.id)}`
-    + `&recurso=${encodeURIComponent($("recurso").value)}`;
+  // Rota limpa: `/acordao/{id}`, sem extensão e sem query. O `&recurso=` que
+  // ia junto saiu — o rótulo da classe vem na resposta, em `recurso_rotulo`.
+  aTeor.href = `/acordao/${encodeURIComponent(item.id)}`;
 
   return el;
 }

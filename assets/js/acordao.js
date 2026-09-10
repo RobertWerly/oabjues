@@ -8,17 +8,29 @@
 // A diferença é a que o resto do protótipo já segue: HTML e CSS de navegador,
 // nas cores da OAB-ES, sem React e sem build.
 //
-// É uma PÁGINA, com endereço próprio (`acordao.html?id=…`). O advogado copia o
-// link de um acórdão, o botão voltar do navegador funciona e abrir em nova aba
-// não perde a busca.
+// É uma PÁGINA, com endereço próprio e limpo: `/acordao/{id}`. O advogado copia
+// o link de um acórdão, o botão voltar do navegador funciona e abrir em nova
+// aba não perde a busca.
 // ============================================================================
 import { acordao, ErroApi } from "./api.js";
 import { esc, limparEspacos, dataBr, classeDistintivo } from "./formato.js";
 
 const $ = (id) => document.getElementById(id);
 const alvo = $("conteudo");
-const params = new URLSearchParams(location.search);
-const id = params.get("id") ?? "";
+/**
+ * O id vem do CAMINHO — `/acordao/{uuid}` — e a query fica como reserva.
+ *
+ * As duas formas continuam funcionando de propósito: link que alguém já
+ * copiou, ou salvou nos favoritos, na forma antiga não pode virar 404 porque
+ * a rota mudou. A rota nova é a que a página gera; a antiga só é lida.
+ */
+function idDaRota() {
+  const doCaminho = location.pathname.match(/\/acordao\/([^/?#]+)\/?$/);
+  if (doCaminho) return decodeURIComponent(doCaminho[1]);
+  return new URLSearchParams(location.search).get("id") ?? "";
+}
+
+const id = idDaRota();
 const JUES = "https://jurimetriaes.com";
 
 // O rótulo do recurso vem NA RESPOSTA do acórdão (`recurso_rotulo`), não da
@@ -29,7 +41,13 @@ let rotuloRecurso = "";
 
 // Quem chegou da busca volta para ela como estava; quem colou o link cai na
 // página inicial.
-if (document.referrer && new URL(document.referrer, location.href).pathname.endsWith("index.html")) {
+// A busca agora mora em "/", e não mais em "/index.html" — a comparação
+// antiga por sufixo nunca casaria e o botão "voltar" perderia os filtros.
+const voltaParaBusca = (url) => {
+  const c = new URL(url, location.href).pathname.replace(/\/+$/, "");
+  return c === "" || c.endsWith("/index.html") || c.endsWith("/index");
+};
+if (document.referrer && voltaParaBusca(document.referrer)) {
   $("voltar").href = document.referrer;
 }
 

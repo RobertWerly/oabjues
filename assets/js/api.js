@@ -18,12 +18,16 @@
  *
  *     <meta name="oabjus-bff" content="/servicos/jurisprudencia-bff.php">
  *
- * Aceita caminho absoluto do site ou URL inteira. Um caminho relativo com a
- * página numa subpasta é o erro clássico: `/jurisprudencia/bff/...` não existe,
- * e a página responde 404 em tudo sem dizer por quê.
+ * Aceita caminho absoluto do site ou URL inteira.
+ *
+ * O padrão é ABSOLUTO, e precisa ser: a página do acórdão vive em
+ * `/acordao/{id}`, e um caminho relativo ali resolveria para
+ * `/acordao/bff/jurisprudencia.php`, que não existe — 404 em tudo, sem dizer
+ * por quê. Se o portal publicar as páginas numa subpasta, a <meta> acima é o
+ * lugar de corrigir, e ela continua aceitando caminho ou URL inteira.
  */
 const BASE = document.querySelector('meta[name="oabjus-bff"]')?.content?.trim()
-  || "bff/jurisprudencia.php";
+  || "/bff/jurisprudencia.php";
 
 /**
  * A página fala com o backend por padrão. `?demo=1` força os dados fictícios,

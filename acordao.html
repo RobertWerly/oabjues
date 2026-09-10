@@ -11,11 +11,11 @@
 
 <!-- As mesmas dependências de index.html. Ao embutir no template da OAB,
      remova a linha do Bootstrap: o portal já o carrega. -->
-<link rel="stylesheet" href="assets/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="/assets/vendor/bootstrap.min.css">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700|Roboto:300,400,500,700&display=swap">
-<link rel="stylesheet" href="assets/css/jurisprudencia.css">
-<link rel="icon" href="public/logos/oab.png">
+<link rel="stylesheet" href="/assets/css/jurisprudencia.css">
+<link rel="icon" href="/public/logos/oab.png">
 
 <!-- Onde o BFF está publicado. Descomente e ajuste ao embutir a página numa
      rota do portal — sem isto o caminho é relativo à página, e numa subpasta
@@ -38,7 +38,7 @@
 
   <!-- O voltar é um link de verdade, com href, e não history.back(): quem
        chega por link colado não tem histórico para onde voltar. -->
-  <a class="btn btn-sm btn-contorno mb-3" id="voltar" href="index.html">
+  <a class="btn btn-sm btn-contorno mb-3" id="voltar" href="/">
     <i class="fas fa-chevron-left me-1"></i> Voltar à busca
   </a>
 
@@ -55,6 +55,6 @@
   conforme publicados pelo tribunal.
 </footer>
 
-<script type="module" src="assets/js/acordao.js"></script>
+<script type="module" src="/assets/js/acordao.js"></script>
 </body>
 </html>

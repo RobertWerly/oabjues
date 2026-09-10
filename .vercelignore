@@ -1,1 +1,6 @@
 bff/
+
+# O .htaccess da raiz é a regra de rota do Apache, para o portal da OAB. A
+# Vercel faz o mesmo pelo vercel.json e ignoraria este arquivo — fora do
+# deploy para ele não dar a impressão de estar em uso aqui.
+/.htaccess

@@ -1,7 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": ".",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
+    {
+      "source": "/acordao/:id",
+      "destination": "/acordao.html"
+    },
     {
       "source": "/bff/jurisprudencia.php",
       "destination": "/api/jurisprudencia"

@@ -12,8 +12,9 @@ Copiou os arquivos para o servidor, está no ar.
 
 ```
 ├─ PARA O PORTAL DA OAB ─────────────────────────────────────────────
-│  index.html      a busca
-│  acordao.html    a página de um acórdão
+│  index.html      a busca            → servida em  /
+│  acordao.html    um acórdão         → servida em  /acordao/{id}
+│  .htaccess       as duas rotas acima, para Apache
 │  assets/         CSS e JS das duas páginas + Bootstrap vendorizado
 │  public/         logos
 │  bff/            o intermediário que guarda a chave e assina (PHP)
@@ -35,12 +36,34 @@ revogada de um lado só e nada mais muda.
 
 ---
 
+## Os endereços
+
+| endereço | página |
+|---|---|
+| `/` | a busca |
+| `/acordao/{id}` | um acórdão, com inteiro teor |
+
+Sem extensão e sem query. `/index.html` e `/acordao.html` redirecionam para a
+forma limpa, para o mesmo conteúdo não existir em dois endereços. A página do
+acórdão ainda **lê** `?id=…`, para link antigo que alguém tenha guardado não
+virar 404 — mas é só leitura: o endereço que ela gera é o limpo.
+
+---
+
 ## Publicar no portal
 
-1. **Copie** `index.html`, `acordao.html`, `assets/`, `public/` e `bff/`
-   (inclusive o `.htaccess`, que bloqueia arquivo oculto na pasta). As duas
-   páginas ficam na **mesma pasta**: a busca linka `acordao.html?id=…` por
-   caminho relativo.
+1. **Copie** `index.html`, `acordao.html`, `.htaccess`, `assets/`, `public/` e
+   `bff/` (inclusive o `.htaccess` de dentro de `bff/`, que é outro e bloqueia
+   arquivo oculto na pasta).
+
+   As páginas esperam ficar na **raiz do site** — é o caso de um subdomínio.
+   Os caminhos de `assets/`, `public/` e do BFF são **absolutos** (`/assets/…`),
+   e precisam ser: a página do acórdão vive em `/acordao/{id}`, e um caminho
+   relativo ali resolveria para `/acordao/assets/…`, que não existe.
+
+   Para publicar numa subpasta em vez de um subdomínio, os caminhos das duas
+   páginas viram relativos de novo e a `<meta name="oabjus-bff">` passa a
+   apontar o PHP — veja o passo 3.
 
 2. **Configure as três variáveis** no processo PHP — nunca no código, nunca
    no Git. Os valores reais chegam por canal fechado, junto com a chave:
@@ -151,6 +174,7 @@ contagens do acervo.
 | cor, espaçamento, tamanho | `assets/css/jurisprudencia.css` — variáveis no topo |
 | texto de rótulo ou aviso | `index.html` e `assets/js/jurisprudencia.js` |
 | endereço do BFF | a `<meta name="oabjus-bff">` no `<head>` das duas páginas |
+| as rotas limpas | `.htaccess` da raiz (Apache) e `vercel.json` (protótipo) |
 | o que aparece no cartão | função `cartao()` em `assets/js/jurisprudencia.js` |
 | os grupos do seletor de desembargador | função `encherMagistrados()` no mesmo arquivo |
 | a página do acórdão | `acordao.html` e `assets/js/acordao.js` |
