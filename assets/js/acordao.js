@@ -13,6 +13,7 @@
 // aba não perde a busca.
 // ============================================================================
 import { acordao, ErroApi } from "./api.js";
+import { JUES as JUES_MOD } from "./jues.js";
 import { esc, limparEspacos, dataBr, classeDistintivo } from "./formato.js";
 
 const $ = (id) => document.getElementById(id);
@@ -31,7 +32,11 @@ function idDaRota() {
 }
 
 const id = idDaRota();
-const JUES = "https://jurimetriaes.com";
+// Vem do módulo, e não de uma string aqui: `jurimetriaes.com` responde 302
+// para `jurimetriabr.com`, então esta constante custava um salto a mais em
+// cada clique e perdia a UTM no caminho. É a mesma fonte que o convite, o
+// suporte e os cartões usam.
+const JUES = JUES_MOD.site("acordao");
 
 // O rótulo do recurso vem NA RESPOSTA do acórdão (`recurso_rotulo`), não da
 // query string nem de uma tabela escrita aqui. O `?recurso=` que a busca

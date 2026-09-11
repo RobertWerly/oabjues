@@ -17,6 +17,7 @@ import { buscar, vocabulario, recentes, identificar, PAGINA_MAX, POR_PAGINA, DEM
   from "./api.js";
 import { comBusca } from "./seletor.js";
 import { abrirConvite } from "./convite.js";
+import { JUES } from "./jues.js";
 import { esc, grifar, trecho, dataBr, dataCurta, classeDistintivo }
   from "./formato.js";
 
@@ -180,14 +181,26 @@ function cartao(item, radicais, rotuloRecurso) {
         <a class="btn btn-sm btn-contorno text-nowrap" data-acao="jues" target="_blank" rel="noopener noreferrer">
           <i class="fas fa-external-link-alt me-1" style="color:var(--oab-vermelho)"></i> Abrir no JUES
         </a>
+        <a class="btn btn-sm btn-contorno text-nowrap" data-acao="tjes" target="_blank" rel="noopener noreferrer">
+          <i class="fas fa-landmark me-1" style="color:var(--oab-texto-3)"></i> Consultar no TJES
+        </a>
         <a class="btn btn-sm btn-oab text-nowrap" data-acao="teor">
           <i class="fas fa-book-open me-1"></i> Inteiro teor
         </a>
       </div>
     </div>`;
 
+  // O botão dizia "Abrir no JUES" e levava ao sistema do TJES. Rótulo de um
+  // lado, destino do outro — e o pior dos dois: quem clicava esperando a
+  // jurimetria caía na consulta processual do tribunal, e quem queria a
+  // consulta processual não tinha como saber que era ali.
+  //
+  // Agora são dois links, cada um dizendo para onde vai. O do JUES sai do
+  // módulo `jues.js`, como todos os outros — URL do JUES escrita à mão é
+  // link morto silencioso no dia em que o domínio mudar.
   const numeros = (item.numero ?? "").replace(/\D/g, "");
-  el.querySelector('[data-acao="jues"]').href =
+  el.querySelector('[data-acao="jues"]').href = JUES.site("cartao");
+  el.querySelector('[data-acao="tjes"]').href =
     `https://sistemas.tjes.jus.br/consultaprocessual/consulta/${numeros}`;
 
   el.querySelector('[data-acao="copiar"]').addEventListener("click", async (e) => {
