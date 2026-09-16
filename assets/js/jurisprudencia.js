@@ -13,11 +13,13 @@
 //   sem total a API não devolve contagem. O fim da lista é `tem_mais: false`,
 //             nunca um zero que se confunde com "nada encontrado".
 // ============================================================================
-import { buscar, vocabulario, recentes, identificar, PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
+import { buscar, vocabulario, recentes, identificar, acordao as acordaoApi,
+         PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
 import { comBusca } from "./seletor.js";
 import { abrirConvite } from "./convite.js";
 import { JUES } from "./jues.js";
+import { montarAcordao, erroAcordao } from "./acordaoVista.js";
 import { esc, grifar, trecho, dataBr, dataCurta, classeDistintivo }
   from "./formato.js";
 
@@ -751,6 +753,90 @@ $("cpf").addEventListener("input", (e) => {
 });
 
 $("form-identificacao").addEventListener("submit", tentarIdentificar);
+
+
+// ── O ACÓRDÃO SEM SAIR DA PÁGINA ──────────────────────────────────────────
+//
+// O PROBLEMA, medido em produção: abrir um acórdão e voltar pedia a
+// identificação de novo. A volta era `back_forward` mas o navegador NÃO
+// restaurava do bfcache — `window.__marca` sumia, `#resultados` voltava a
+// `inicial`, e a página reexecutava do zero. Reexecutar é passar pelo portão,
+// porque o portão não guarda nada: é essa a regra, e ela não vai mudar.
+//
+// O QUE NÃO SERVIA:
+//
+//   · guardar um sinal no `localStorage` ou no `history.state` — é o mesmo
+//     buraco que já foi fechado uma vez: quem escreve a chave no console
+//     entra. A porta não pode conferir bilhete que o visitante emite;
+//   · abrir em aba nova — resolve, mas muda o comportamento, e o pedido foi
+//     explicitamente para não mudar mais nada;
+//   · confiar no bfcache — medido: não acontece.
+//
+// O QUE SERVE: não descarregar a página. O clique comum passa a trocar a
+// VISTA e empurrar o endereço com `pushState`; voltar é `popstate`, que não
+// recarrega nada. A busca continua viva atrás, com filtros, resultados e
+// página onde estavam.
+//
+// O ENDEREÇO CONTINUA SENDO `/acordao/{id}`. Copiar, favoritar, abrir em aba
+// nova com o meio do mouse e recarregar continuam caindo na página própria,
+// que não mudou uma linha do que faz. Por isso o link continua sendo um `<a
+// href>` de verdade, e só o clique SEM modificador é interceptado — com
+// Ctrl, Cmd, Shift ou botão do meio o navegador faz o que sempre fez.
+const vista = $("vista-acordao");
+const embutido = $("acordao-embutido");
+
+function mostrarBusca() {
+  vista.hidden = true;
+  $("tudo-da-busca").hidden = false;
+  embutido.innerHTML = "";
+  document.title = TITULO_BUSCA;
+}
+
+async function mostrarAcordao(id) {
+  $("tudo-da-busca").hidden = true;
+  vista.hidden = false;
+  embutido.innerHTML = `<div class="text-center py-5">
+    <span class="spinner-border spinner-border-sm me-2"></span>Carregando o acórdão…</div>`;
+  window.scrollTo({ top: 0, behavior: "instant" });
+  try {
+    const d = await acordaoApi(id);
+    // `false` no título: a aba continua sendo a da busca, que está viva atrás.
+    montarAcordao(embutido, d, d.recurso_rotulo ?? "", false);
+  } catch (e) {
+    erroAcordao(embutido,
+      e instanceof ErroApi && e.status === 404 ? "Acórdão não encontrado"
+        : "Não foi possível carregar o acórdão",
+      e instanceof ErroApi && e.status === 404
+        ? "Este acórdão não está disponível para consulta nesta base."
+        : "Tente de novo em instantes.");
+  }
+}
+
+const TITULO_BUSCA = document.title;
+
+document.addEventListener("click", (e) => {
+  // Só o clique simples. Modificador, botão do meio e teclado com Ctrl
+  // continuam abrindo a página própria em aba nova, como qualquer link.
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  const a = e.target.closest('a[data-acao="teor"]');
+  if (!a || !a.getAttribute("href")?.startsWith("/acordao/")) return;
+  e.preventDefault();
+  const id = a.getAttribute("href").slice("/acordao/".length);
+  history.pushState({ acordao: id }, "", a.getAttribute("href"));
+  mostrarAcordao(id);
+});
+
+$("voltar-resultados").addEventListener("click", (e) => {
+  e.preventDefault();
+  history.back();
+});
+
+// Voltar e avançar. `state.acordao` diz qual vista aquela entrada era; sem
+// ele, é a busca.
+addEventListener("popstate", (ev) => {
+  if (ev.state && ev.state.acordao) mostrarAcordao(ev.state.acordao);
+  else mostrarBusca();
+});
 
 async function iniciar() {
   // A PORTA PRIMEIRO, antes de qualquer rede.

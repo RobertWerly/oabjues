@@ -261,6 +261,17 @@
 
   </div><!-- /tudo-da-busca -->
 
+  <!-- O acórdão aberto SEM SAIR DA PÁGINA. Ver o comentário em
+       jurisprudencia.js: sair e voltar recarregava tudo, e recarregar é
+       recredenciar. Quem chega por link direto em /acordao/{id} continua
+       caindo na página própria, que não mudou. -->
+  <div id="vista-acordao" hidden>
+    <a class="btn btn-sm btn-contorno mb-3" id="voltar-resultados" href="/">
+      <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Voltar aos resultados
+    </a>
+    <div id="acordao-embutido" aria-live="polite"></div>
+  </div>
+
 </main>
 
 <footer class="container-lg rodape py-3 mt-4">
