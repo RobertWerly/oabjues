@@ -3,6 +3,11 @@
   "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
+  "functions": {
+    "api/jurisprudencia.mjs": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/acordao/:id",
