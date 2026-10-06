@@ -13,7 +13,7 @@
 //   sem total a API não devolve contagem. O fim da lista é `tem_mais: false`,
 //             nunca um zero que se confunde com "nada encontrado".
 // ============================================================================
-import { buscar, vocabulario, recentes, identificar, acordao as acordaoApi,
+import { buscar, vocabulario, recentes, identificar, acordao as acordaoApi, temSessao,
          PAGINA_MAX, POR_PAGINA, DEMO, ErroApi }
   from "./api.js";
 import { comBusca } from "./seletor.js";
@@ -265,6 +265,9 @@ function estadoVazio({ inicial }) {
 async function carregarRecentes(n = 1) {
   const alvo = $("recentes");
   if (!alvo) return;
+  // Antes da porta não há lista: `recentes` só responde a quem se identificou.
+  // A identificação chama esta função de novo assim que abre a busca.
+  if (!temSessao()) { alvo.innerHTML = ""; return; }
   const rotulo = $("recurso").selectedOptions[0]?.text ?? "";
   alvo.innerHTML = `<p class="text-center py-3" style="color:var(--oab-texto-3);font-size:.88rem">
     <span class="spinner-border spinner-border-sm me-2"></span>Carregando os últimos acórdãos…</p>`;
@@ -320,8 +323,9 @@ async function carregarRecentes(n = 1) {
       teto.textContent = `Esta lista mostra até ${PAGINA_MAX * POR_PAGINA} acórdãos; use a busca para ir além.`;
       alvo.appendChild(teto);
     }
-  } catch {
+  } catch (e) {
     alvo.innerHTML = "";   // a lista é um extra; falhar nela não estraga a página
+    if (sessaoVencida(e)) voltarAPorta();
   }
 }
 
@@ -441,7 +445,9 @@ async function executar(n) {
   } catch (e) {
     lista.dataset.estado = "erro";
     lista.innerHTML = "";
-    if (e instanceof ErroApi && e.status === 400) {
+    if (sessaoVencida(e)) {
+      voltarAPorta();
+    } else if (e instanceof ErroApi && e.status === 400) {
       nota(`<i class="fas fa-times-circle me-1"></i> Não foi possível pesquisar: ${esc(e.message)}`);
     } else if (e instanceof ErroApi && e.status === 429) {
       nota(`<i class="fas fa-hourglass-half me-1"></i> Limite de consultas atingido. ${esc(e.message)}`);
@@ -665,6 +671,20 @@ function abrirBusca() {
   $("tudo-da-busca").hidden = false;
 }
 
+/** A sessão da porta vale 2 horas, e só na memória desta página. Vencida, o
+ *  BFF responde 401 com `campo: "sessao"` — e a resposta certa é a porta de
+ *  novo, com o motivo, e não "serviço indisponível". */
+function sessaoVencida(e) {
+  return e instanceof ErroApi && e.status === 401 && e.campo === "sessao";
+}
+
+function voltarAPorta() {
+  $("tudo-da-busca").hidden = true;
+  $("portao").hidden = false;
+  notaPortao(`<i class="fas fa-user-clock me-1"></i> Sua identificação venceu.
+    Confirme a inscrição e o CPF para continuar pesquisando.`, "aviso-motor");
+}
+
 function notaPortao(html, classe = "aviso-motor") {
   $("erro-identificacao").innerHTML = `<div class="${classe}">${html}</div>`;
 }
@@ -686,6 +706,8 @@ async function tentarIdentificar(e) {
       case "valido":
         // Abre e pronto. Nada é gravado: a próxima visita pergunta de novo.
         abrirBusca();
+        // Os últimos acórdãos só agora: antes da porta eles não vinham.
+        if (lista.dataset.estado === "inicial" || lista.dataset.estado === "vazio") carregarRecentes();
         // O convite vem DEPOIS de abrir a busca, não no lugar dela: quem
         // fechar sem ler já encontra a página pronta atrás. `recursos` sai do
         // <select> que a página acabou de encher — o texto fala do acervo

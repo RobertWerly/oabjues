@@ -18,13 +18,55 @@
 //
 // Nunca no código, nunca no Git.
 // ============================================================================
-import { createHash, createHmac, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 /** Rotas que o navegador pode pedir. O parâmetro vem de fora: não pode virar
  *  caminho arbitrário no host de destino. */
 const ROTA_VALIDA = /^(busca|identificar|vocabulario|recentes\/[a-z_]{3,40}|acordao\/[0-9a-fA-F-]{36})$/;
 const ROTAS_POST = new Set(["busca", "identificar"]);
 const CORPO_MAX = 8192;
+
+/**
+ * As rotas que entregam ACÓRDÃO EM LOTE só respondem a quem se identificou.
+ *
+ * Até 06/10/2026 o portão (CPF + inscrição) só escondia a tela: `busca` e
+ * `recentes` respondiam a qualquer um que chamasse este endereço, e cada
+ * chamada entrega 20 inteiros teores e os ids. O teto diário é por CHAVE — a
+ * do site inteiro —, então quem minerasse também esgotaria a cota de todos os
+ * advogados.
+ *
+ * A sessão é um bilhete assinado aqui, entregue SÓ na resposta de uma
+ * identificação `valido`, e que a página guarda numa variável — sem cookie,
+ * sem localStorage, sem sessionStorage: recarregou, identifica de novo, que é
+ * a regra desde 10/09/2026. Não há estado no servidor: o bilhete diz até
+ * quando vale, e a assinatura diz que fomos nós que o emitimos.
+ *
+ * `acordao` fica fora de propósito: pede o id, e ids só saem de `busca` e
+ * `recentes`. O link de um acórdão aberto em outra aba continua funcionando.
+ */
+const ROTAS_COM_SESSAO = /^(busca|recentes\/)/;
+const SESSAO_MS = 2 * 60 * 60 * 1000;
+
+function chaveDaSessao(segredo) {
+  // Derivada, e não o próprio segredo da API: o bilhete fica no navegador, e
+  // nada que vá para lá pode servir para assinar chamada à API.
+  return createHmac("sha256", segredo).update("oabjus-sessao-v1").digest();
+}
+
+export function emitirSessao(segredo, agora = Date.now()) {
+  const carga = `v1.${agora + SESSAO_MS}`;
+  return `${carga}.${createHmac("sha256", chaveDaSessao(segredo)).update(carga).digest("hex")}`;
+}
+
+export function sessaoValida(bilhete, segredo, agora = Date.now()) {
+  const m = /^(v1\.(\d{13}))\.([0-9a-f]{64})$/.exec(String(bilhete ?? ""));
+  if (!m) return false;
+  const vence = Number(m[2]);
+  // Vencido, ou "válido" por mais tempo do que emitimos: os dois são falsos.
+  if (!(vence > agora && vence <= agora + SESSAO_MS)) return false;
+  const esperado = createHmac("sha256", chaveDaSessao(segredo)).update(m[1]).digest();
+  return timingSafeEqual(esperado, Buffer.from(m[3], "hex"));
+}
 
 function responder(res, status, corpo) {
   res.status(status)
@@ -75,6 +117,11 @@ export default async function handler(req, res) {
   const rota = String(req.query?.rota ?? "");
   if (!ROTA_VALIDA.test(rota)) {
     return responder(res, 400, { erro: "rota inválida" });
+  }
+
+  if (ROTAS_COM_SESSAO.test(rota) && !sessaoValida(req.headers["x-oabjus-sessao"], segredo)) {
+    // Antes de assinar qualquer coisa: sem sessão, nada vai para a API.
+    return responder(res, 401, { erro: "identifique-se para pesquisar", campo: "sessao" });
   }
 
   const metodo = ROTAS_POST.has(rota.split("/")[0]) ? "POST" : "GET";
@@ -154,7 +201,17 @@ export default async function handler(req, res) {
 
   // Repassa o JSON como veio. A projeção é responsabilidade da API, não daqui:
   // duas camadas decidindo o que sai é duas camadas para manter em dia.
-  const texto = await resposta.text();
+  let texto = await resposta.text();
+
+  // A única coisa que este BFF acrescenta: a sessão, e só para `valido`.
+  if (rota === "identificar" && resposta.status === 200) {
+    try {
+      const r = JSON.parse(texto);
+      if (r && typeof r === "object" && r.veredito === "valido") {
+        texto = JSON.stringify({ ...r, sessao: emitirSessao(segredo) });
+      }
+    } catch { /* resposta sem JSON: repassa como veio, sem sessão */ }
+  }
   res.status(resposta.status)
      .setHeader("content-type", "application/json; charset=utf-8")
      .setHeader("x-content-type-options", "nosniff")

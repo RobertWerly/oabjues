@@ -8,6 +8,35 @@ header('Cache-Control: no-store');
 
 const ROTAS_POST = ['busca', 'identificar'];
 
+// As rotas que entregam ACÓRDÃO EM LOTE só respondem a quem se identificou —
+// o mesmo que api/jurisprudencia.mjs faz, linha por linha (ver o comentário
+// longo de lá). Sessão é um bilhete assinado aqui, entregue só na resposta de
+// uma identificação `valido`, que a página guarda numa variável: sem cookie,
+// sem storage. `acordao` fica fora: pede o id, e ids só saem destas duas.
+const SESSAO_MS = 2 * 60 * 60 * 1000;
+
+function chave_da_sessao(string $segredo): string {
+    // Derivada: o bilhete vai para o navegador, e nada de lá assina chamada à API.
+    return hash_hmac('sha256', 'oabjus-sessao-v1', $segredo, true);
+}
+
+function emitir_sessao(string $segredo): string {
+    $carga = 'v1.' . ((int) (microtime(true) * 1000) + SESSAO_MS);
+    return $carga . '.' . hash_hmac('sha256', $carga, chave_da_sessao($segredo));
+}
+
+function sessao_valida(string $bilhete, string $segredo): bool {
+    if (!preg_match('/^(v1\.(\d{13}))\.([0-9a-f]{64})$/', $bilhete, $m)) {
+        return false;
+    }
+    $agora = (int) (microtime(true) * 1000);
+    $vence = (int) $m[2];
+    if (!($vence > $agora && $vence <= $agora + SESSAO_MS)) {
+        return false;
+    }
+    return hash_equals(hash_hmac('sha256', $m[1], chave_da_sessao($segredo)), $m[3]);
+}
+
 function responder(int $status, array $corpo): never {
     http_response_code($status);
     echo json_encode($corpo, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -26,6 +55,12 @@ $rota = (string) ($_GET['rota'] ?? '');
 // arbitrário no host de destino.
 if (!preg_match('#^(busca|identificar|vocabulario|recentes/[a-z_]{3,40}|acordao/[0-9a-fA-F-]{36})$#', $rota)) {
     responder(400, ['erro' => 'rota inválida']);
+}
+
+if (preg_match('#^(busca|recentes/)#', $rota)
+    && !sessao_valida((string) ($_SERVER['HTTP_X_OABJUS_SESSAO'] ?? ''), $segredo)) {
+    // Antes de assinar qualquer coisa: sem sessão, nada vai para a API.
+    responder(401, ['erro' => 'identifique-se para pesquisar', 'campo' => 'sessao']);
 }
 
 $metodo = in_array(explode('/', $rota)[0], ROTAS_POST, true) ? 'POST' : 'GET';
@@ -134,5 +169,13 @@ if ($falhou || $status === 0) {
 
 // Repassa o JSON como veio. A projeção é responsabilidade da API, não daqui:
 // duas camadas decidindo o que sai é duas camadas para manter em dia.
+// A única coisa que este BFF acrescenta: a sessão, e só para `valido`.
+if ($rota === 'identificar' && $status === 200) {
+    $r = json_decode((string) $resposta, true);
+    if (is_array($r) && ($r['veredito'] ?? null) === 'valido') {
+        $r['sessao'] = emitir_sessao($segredo);
+        $resposta = json_encode($r, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+}
 http_response_code($status);
 echo $resposta;

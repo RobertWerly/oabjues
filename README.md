@@ -34,6 +34,17 @@ chave; o JurimetriaES fica com a API, o banco e o motor de busca.** A OAB
 assina as chamadas; quem lê o acervo é o JurimetriaES. Se a chave vazar, ela é
 revogada de um lado só e nada mais muda.
 
+**`busca` e `recentes` só respondem a quem passou pela porta.** Quando a
+identificação (CPF + inscrição) dá `valido`, o BFF devolve junto uma sessão
+assinada que vale 2 horas. A página a guarda numa variável — sem cookie, sem
+`localStorage`, sem `sessionStorage` — e a manda no cabeçalho
+`x-oabjus-sessao`. Recarregou, a sessão some e a porta pergunta de novo. Sem
+ela, o BFF responde `401 {"campo": "sessao"}` sem chamar a API. `acordao`
+continua aberto por id (ids só saem dessas duas rotas), e o link de um
+acórdão aberto em outra aba funciona. Os dois BFFs (PHP e Node) emitem e
+aceitam o mesmo bilhete, derivado de `OABJUS_SEGREDO` — nada novo a
+configurar.
+
 ---
 
 ## Os endereços

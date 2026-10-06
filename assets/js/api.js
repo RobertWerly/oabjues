@@ -49,6 +49,20 @@ export const DEMO = new URLSearchParams(location.search).get("demo") === "1";
 export const POR_PAGINA = 20;
 export const PAGINA_MAX = 10;
 
+/**
+ * A sessão que o BFF entrega quando a identificação dá `valido`.
+ *
+ * Mora NESTA variável e em mais lugar nenhum: sem cookie, sem localStorage,
+ * sem sessionStorage. Recarregou a página, ela some e a porta pergunta de novo
+ * — a regra desde 10/09/2026. `busca` e `recentes` só respondem com ela.
+ */
+let sessao = null;
+
+/** Já passou pela porta nesta página? */
+export function temSessao() {
+  return sessao !== null || DEMO;
+}
+
 export class ErroApi extends Error {
   constructor(mensagem, status, campo, veredito) {
     super(mensagem);
@@ -73,14 +87,17 @@ async function chamar(rota, params = {}, opcoes = {}) {
   const q = Object.entries(params)
     .map(([k, v]) => `&${k}=${encodeURIComponent(v)}`).join("");
   let r;
+  const cabecalhos = { ...(opcoes.headers ?? {}), ...(sessao ? { "x-oabjus-sessao": sessao } : {}) };
   try {
-    r = await fetch(`${BASE}?rota=${encodeURIComponent(rota)}${q}`, opcoes);
+    r = await fetch(`${BASE}?rota=${encodeURIComponent(rota)}${q}`, { ...opcoes, headers: cabecalhos });
   } catch {
     throw new ErroApi("não foi possível falar com o servidor", 0);
   }
   let corpo = null;
   try { corpo = await r.json(); } catch { /* resposta sem JSON */ }
   if (!r.ok) {
+    // Sessão vencida ou ausente: esquece a que havia, e a página volta à porta.
+    if (r.status === 401 && corpo?.campo === "sessao") sessao = null;
     throw new ErroApi(corpo?.erro ?? `erro ${r.status}`, r.status, corpo?.campo, corpo?.veredito);
   }
   return corpo ?? {};
@@ -107,7 +124,7 @@ export async function buscar(pedido) {
  */
 export async function identificar({ inscricao, cpf, seccional, nome }) {
   if (DEMO) return demoIdentificar(inscricao, cpf);
-  return chamar("identificar", {}, {
+  const r = await chamar("identificar", {}, {
     method: "POST",
     headers: { "content-type": "application/json" },
     // O CPF vai no CORPO de um POST, nunca em query string: query string
@@ -115,6 +132,11 @@ export async function identificar({ inscricao, cpf, seccional, nome }) {
     // no caminho. O corpo, não.
     body: JSON.stringify({ inscricao, cpf, seccional, nome: nome || null }),
   });
+  // A sessão fica na variável do módulo e NÃO volta para quem chamou: a
+  // página não tem o que fazer com ela além de deixá-la aqui.
+  if (r?.veredito === "valido" && typeof r.sessao === "string") sessao = r.sessao;
+  const { sessao: _, ...resto } = r ?? {};
+  return resto;
 }
 
 export async function acordao(id) {
