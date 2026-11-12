@@ -25,7 +25,7 @@ Copiou os arquivos para o servidor, está no ar.
 │  .vercelignore   mantém o .php fora do deploy da Vercel
 ```
 
-O protótipo publicado (`oabjues.vercel.app`) usa a metade de baixo porque a
+O protótipo publicado (`jurimetriaoabes.com`; `oabjues.vercel.app` e o www redirecionam para ele) usa a metade de baixo porque a
 Vercel não roda PHP. No portal da OAB o papel inteiro é do
 `bff/jurisprudencia.php`, e a pasta `api/` não deve existir lá.
 
